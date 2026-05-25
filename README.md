@@ -44,15 +44,15 @@ The local app is the only writer. The GitHub Pages site only reads generated JSO
 
 ## Publishing
 
-The `Publish` button runs:
+The `Publish` button exports the public site files and runs:
 
 ```text
-git add docs data/logbook.adi
+git add docs
 git commit -m "Publish log update"
 git push origin main
 ```
 
-Before publishing to a public GitHub repo, decide whether `data/logbook.adi` should be committed. The public viewer only needs `docs/`.
+`data/logbook.adi` is intentionally ignored because imported ADIF files can contain private fields such as names, emails, exact location data, and operator notes. The public viewer only needs `docs/`.
 
 For GitHub Pages, configure the repository to serve from:
 

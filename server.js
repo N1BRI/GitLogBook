@@ -182,7 +182,7 @@ async function ensureDataFiles() {
 
 async function publish() {
   const settings = await readSettings();
-  const files = ["docs", "data/logbook.adi"];
+  const files = ["docs"];
   const status = await gitStatus();
   if (!status.isRepo) return { ok: false, error: "This folder is not a usable Git repository yet.", status };
 
