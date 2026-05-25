@@ -79,7 +79,7 @@ function renderPostPage(post, markdown) {
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>${escapeHtml(post.title)} - N1BRI Logbook</title>
+    <title>${escapeHtml(post.title)} - GitLogBook</title>
     <link rel="stylesheet" href="/site/styles.css?v=9">
   </head>
   <body>
@@ -104,7 +104,7 @@ function renderArchivePage() {
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Posts - N1BRI Logbook</title>
+    <title>Posts - GitLogBook</title>
     <link rel="stylesheet" href="/site/styles.css?v=9">
   </head>
   <body>

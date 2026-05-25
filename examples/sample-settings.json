@@ -1,0 +1,14 @@
+{
+  "stationCallsign": "YOURCALL",
+  "publicTitle": "YOURCALL Logbook",
+  "publicSubtitle": "Read-only amateur radio contact log",
+  "aboutTitle": "About YOURCALL",
+  "aboutBody": "This is a sample GitLogBook profile. Edit these settings or use the local Site Settings panel to make it yours.",
+  "profileImageUrl": "",
+  "myGrid": "FN31",
+  "git": {
+    "remote": "origin",
+    "branch": "main",
+    "commitTemplate": "Publish log update"
+  }
+}

@@ -1,11 +1,11 @@
 {
-  "title": "N1BRI Logbook",
+  "title": "YOURCALL Logbook",
   "subtitle": "Read-only amateur radio contact log",
-  "stationCallsign": "N1BRI",
-  "myGrid": "FN31ON",
-  "homeLat": 41.5625,
-  "homeLon": -72.7917,
-  "aboutTitle": "About N1BRI",
-  "aboutBody": "Thanks for visiting my amateur radio logbook. This page is a read-only view of recent contacts from my local ADIF log.",
-  "profileImageUrl": "https://github.com/N1BRI.png"
+  "stationCallsign": "YOURCALL",
+  "myGrid": "FN31",
+  "homeLat": 41.5,
+  "homeLon": -73,
+  "aboutTitle": "About YOURCALL",
+  "aboutBody": "This is a sample GitLogBook profile. Edit data/settings.json or use the local Site Settings panel to make it yours.",
+  "profileImageUrl": ""
 }
