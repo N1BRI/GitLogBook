@@ -1,10 +1,12 @@
 const form = document.querySelector("#qsoForm");
 const settingsForm = document.querySelector("#settingsForm");
+const importForm = document.querySelector("#importForm");
 const rows = document.querySelector("#qsoRows");
 const searchInput = document.querySelector("#searchInput");
 const summary = document.querySelector("#summary");
 const statusEl = document.querySelector("#formStatus");
 const settingsStatusEl = document.querySelector("#settingsStatus");
+const importStatusEl = document.querySelector("#importStatus");
 const formTitle = document.querySelector("#formTitle");
 const resetButton = document.querySelector("#resetButton");
 const lookupButton = document.querySelector("#lookupButton");
@@ -31,6 +33,7 @@ function bindEvents() {
   exportButton.addEventListener("click", exportPublic);
   publishButton.addEventListener("click", publish);
   settingsForm.addEventListener("submit", saveSettings);
+  importForm.addEventListener("submit", importAdif);
 }
 
 async function loadQsos() {
@@ -49,6 +52,28 @@ async function saveSettings(event) {
   const settings = await api("/api/settings", { method: "PUT", body: payload });
   fillSettingsForm(settings);
   setSettingsStatus("Settings saved and public config regenerated.");
+}
+
+async function importAdif(event) {
+  event.preventDefault();
+  const payload = Object.fromEntries(new FormData(importForm).entries());
+  if (!payload.path.trim()) {
+    setImportStatus("Enter a local ADIF file path first.", "warn");
+    return;
+  }
+
+  const button = importForm.querySelector("button[type='submit']");
+  button.disabled = true;
+  setImportStatus("Importing ADIF...");
+  try {
+    const result = await api("/api/import", { method: "POST", body: payload });
+    await loadQsos();
+    setImportStatus(`Imported ${result.imported} of ${result.incoming} records. Skipped ${result.skipped} duplicates. ${result.total} QSOs total.`);
+  } catch (error) {
+    setImportStatus(error.message || "Import failed.", "error");
+  } finally {
+    button.disabled = false;
+  }
 }
 
 async function saveQso(event) {
@@ -215,6 +240,11 @@ function setStatus(message, tone = "") {
 function setSettingsStatus(message, tone = "") {
   settingsStatusEl.textContent = message;
   settingsStatusEl.dataset.tone = tone;
+}
+
+function setImportStatus(message, tone = "") {
+  importStatusEl.textContent = message;
+  importStatusEl.dataset.tone = tone;
 }
 
 function fillSettingsForm(settings) {

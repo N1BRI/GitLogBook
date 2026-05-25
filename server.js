@@ -5,6 +5,7 @@ const path = require("node:path");
 const { spawn } = require("node:child_process");
 const { parseAdif, writeAdif, normalizeQso } = require("./lib/adif");
 const { buildPublicExport } = require("./lib/exporter");
+const { importAdifFile } = require("./lib/importer");
 const { latLonToGrid } = require("./lib/maidenhead");
 
 const ROOT = __dirname;
@@ -110,6 +111,13 @@ async function handleApi(req, res, url) {
   if (method === "POST" && url.pathname === "/api/export") {
     const result = await exportPublic();
     sendJson(res, 200, result.stats);
+    return;
+  }
+
+  if (method === "POST" && url.pathname === "/api/import") {
+    const body = await readBody(req);
+    const result = await importAdifFile({ importPath: cleanString(body.path), root: ROOT });
+    sendJson(res, 200, result);
     return;
   }
 

@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>GitLogBook</title>
-    <link rel="stylesheet" href="/styles.css?v=4">
+    <link rel="stylesheet" href="/styles.css?v=5">
   </head>
   <body>
     <header class="topbar">
@@ -91,6 +91,22 @@
         <p id="settingsStatus" class="status"></p>
       </section>
 
+      <section class="panel import-panel">
+        <div class="panel-title">
+          <div>
+            <h2>Import ADIF</h2>
+            <p>Merge a local .adi file into this log</p>
+          </div>
+        </div>
+        <form id="importForm">
+          <label>ADIF File Path <input name="path" placeholder="/home/beegs/Downloads/log.adi"></label>
+          <div class="actions">
+            <button type="submit">Import File</button>
+          </div>
+        </form>
+        <p id="importStatus" class="status"></p>
+      </section>
+
       <section class="panel log-panel">
         <div class="panel-title">
           <div>
@@ -118,6 +134,6 @@
       </section>
     </main>
 
-    <script src="/app.js?v=4"></script>
+    <script src="/app.js?v=5"></script>
   </body>
 </html>
