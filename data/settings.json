@@ -6,7 +6,7 @@
   "aboutBody": "Thanks for visiting my amateur radio logbook. This page is a read-only view of recent contacts from my local ADIF log.",
   "profileImageUrl": "https://github.com/N1BRI.png",
   "qrzUrl": "https://www.qrz.com/db/N1BRI",
-  "myGrid": "",
+  "myGrid": "FN31ON",
   "publicFields": [
     "id",
     "call",

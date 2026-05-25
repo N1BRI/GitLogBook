@@ -250,6 +250,52 @@ select:focus {
   background: var(--amber);
 }
 
+.dot.home {
+  background: var(--navy);
+}
+
+.home-station-icon {
+  position: relative;
+}
+
+.home-house {
+  position: absolute;
+  left: 5px;
+  top: 12px;
+  display: block;
+  width: 24px;
+  height: 18px;
+  background: var(--navy);
+  border: 3px solid white;
+  border-top: 0;
+  border-radius: 0 0 5px 5px;
+  box-shadow: 0 8px 18px rgba(21, 34, 56, 0.35);
+}
+
+.home-house::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: -11px;
+  width: 16px;
+  height: 16px;
+  background: var(--navy);
+  border-left: 3px solid white;
+  border-top: 3px solid white;
+  transform: rotate(45deg);
+}
+
+.home-house::after {
+  content: "";
+  position: absolute;
+  left: 8px;
+  bottom: -3px;
+  width: 6px;
+  height: 10px;
+  background: white;
+  border-radius: 2px 2px 0 0;
+}
+
 .side-panel {
   display: grid;
   gap: 10px;

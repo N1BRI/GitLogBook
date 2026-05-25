@@ -1,8 +1,10 @@
 const state = {
+  config: {},
   records: [],
   filtered: [],
   map: null,
-  markers: null
+  markers: null,
+  homeMarker: null
 };
 
 const controls = {
@@ -40,6 +42,7 @@ async function fetchConfig() {
     const config = await fetch("./data/site-config.json").then((response) => response.json());
     const title = config.title || "Public Logbook";
     const subtitle = config.subtitle || "Read-only amateur radio contact log";
+    state.config = config;
     document.title = title;
     document.querySelector("#siteTitle").textContent = title;
     document.querySelector("#subtitle").textContent = subtitle;
@@ -158,6 +161,7 @@ function renderViewStats() {
 function renderMap() {
   if (!state.map) return;
   state.markers.clearLayers();
+  renderHomeMarker();
   const grouped = new Map();
 
   state.filtered.forEach((qso) => {
@@ -183,7 +187,30 @@ function renderMap() {
     bounds.push([point.lat, point.lon]);
   });
 
+  if (state.homeMarker) bounds.push(state.homeMarker.getLatLng());
   if (bounds.length) state.map.fitBounds(bounds, { padding: [30, 30], maxZoom: 5 });
+}
+
+function renderHomeMarker() {
+  if (state.homeMarker) {
+    state.homeMarker.remove();
+    state.homeMarker = null;
+  }
+
+  const { homeLat, homeLon, myGrid, stationCallsign } = state.config;
+  if (!Number.isFinite(homeLat) || !Number.isFinite(homeLon)) return;
+
+  const icon = L.divIcon({
+    className: "home-station-icon",
+    html: `<span class="home-house" aria-hidden="true"></span>`,
+    iconSize: [34, 34],
+    iconAnchor: [17, 28],
+    popupAnchor: [0, -28]
+  });
+
+  state.homeMarker = L.marker([homeLat, homeLon], { icon, zIndexOffset: 1000 })
+    .bindPopup(`<strong>${escapeHtml(stationCallsign || "Home station")}</strong><br>${escapeHtml(myGrid || "")}`)
+    .addTo(state.map);
 }
 
 function renderBars(selector, counts, limit) {
