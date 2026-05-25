@@ -13,47 +13,5 @@
     "source": "KeyKlix - March 2025",
     "url": "/posts/40m-vxo-qrp-transmitter.html",
     "searchText": "40m vxo qrp transmitter a first step toward designing and building a 40m qrp cw transceiver: a simple vxo transmitter using 2n2222 stages and an irf510 final. one of my main aspirations in the ham radio hobby is to design and build a 40m qrp cw transceiver. this is an ambitious goal for someone without formal training in electronics or rf design, but with the wealth of online resources available and the guidance of experienced marc members i believe it's achievable with effort. that being said, i'm a long way from a transceiver and i have so much to learn. i learn best by practicing, getting my hands dirty, and making mistakes.\n\n![40m vxo qrp transmitter schematic](/assets/posts/40m-vxo-qrp-transmitter/schematic.jpg)\n\ntransmitters are much easier than receivers, so that's where i started. i've been intrigued with variable crystal oscillators (vxo) ever since i read the short article daniel bare ab7sq and john clements kc9on put out on \"pulling\" quartz crystals. any transmitter needs an oscillator, and anybody who has ever built an lc oscillator knows that building a stable one is very difficult, especially if it is tunable or variable.\n\nquartz crystals give you rock-solid stability at a fixed frequency. this paper says we can get stability and frequency variability, cake to have and to eat. there are plenty of sophisticated methods for creating variable frequency oscillators. this is not one of them, which is why i was attracted to it. the design i came up with is simple and undoubtedly flawed.\n\n![oscillator, buffer amplifier, power amplifier, and matching/filtering block diagram](/assets/posts/40m-vxo-qrp-transmitter/block-diagram.jpg)\n\n![reverse beacon network spots for the 40m transmitter](/assets/posts/40m-vxo-qrp-transmitter/spots.jpg)\n\n![built 40m vxo qrp transmitter board](/assets/posts/40m-vxo-qrp-transmitter/transmitter-board.jpg)\n\ni used 2n2222 npn transistors for the oscillator, buffer and keying, and an irf510 for the power amplifier. i'm getting about 3 watts at 12 volts and i have a frequency range of about 10khz, 7056-7046. there is a t/r switch which essentially just knocks the oscillator off the frequency your receiver is tuned to and back again for transmit.\n\nthe matching was done totally by trial and error and is surely not as good as it could be. i apply just enough signal from the buffer amp to the gate of the irf510 to almost turn it on and then key the bias. i think this could be better too. but i'm making contacts and it is a lot of fun. hope to catch you on 40m!"
-  },
-  {
-    "slug": "winter-woods-activation",
-    "title": "Winter Woods Activation",
-    "date": "2025-02-15",
-    "summary": "A placeholder field note for a future CW activation story from the woods.",
-    "tags": [
-      "cw",
-      "portable",
-      "field-notes"
-    ],
-    "source": "",
-    "url": "/posts/winter-woods-activation.html",
-    "searchText": "winter woods activation a placeholder field note for a future cw activation story from the woods. this is a dummy post for the gitlogbook blog archive.\n\nuse this space for a future story about packing light, hiking into the woods, throwing a wire into a tree, and seeing who can hear a small signal."
-  },
-  {
-    "slug": "bench-notes",
-    "title": "Bench Notes: What I'm Building",
-    "date": "2025-01-20",
-    "summary": "A placeholder post for shop notes, experiments, and small radio builds.",
-    "tags": [
-      "homebrew",
-      "bench",
-      "experiments"
-    ],
-    "source": "",
-    "url": "/posts/bench-notes.html",
-    "searchText": "bench notes: what i'm building a placeholder post for shop notes, experiments, and small radio builds. this is a dummy post for future build notes.\n\npossible topics: qrp transmitters, small tuners, antennas, keying circuits, test equipment, and lessons learned the hard way."
-  },
-  {
-    "slug": "peak-activation-template",
-    "title": "Peak Activation Template",
-    "date": "2024-12-30",
-    "summary": "A placeholder trip report format for future summit or hilltop activations.",
-    "tags": [
-      "cw",
-      "portable",
-      "activation"
-    ],
-    "source": "",
-    "url": "/posts/peak-activation-template.html",
-    "searchText": "peak activation template a placeholder trip report format for future summit or hilltop activations. this is a dummy activation report.\n\nsuggested sections:\n\n- route and weather\n- station setup\n- bands and modes\n- best contacts\n- what to pack differently next time"
   }
 ]
