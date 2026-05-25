@@ -130,6 +130,14 @@ async function handleApi(req, res, url) {
     return;
   }
 
+  if (method === "PUT" && url.pathname === "/api/settings") {
+    const settings = mergeSettings(await readSettings(), await readBody(req));
+    await fs.writeFile(SETTINGS_PATH, JSON.stringify(settings, null, 2), "utf8");
+    await exportPublic();
+    sendJson(res, 200, settings);
+    return;
+  }
+
   if (method === "POST" && url.pathname === "/api/lookup") {
     sendJson(res, 200, await lookupCallsign(await readBody(req)));
     return;
@@ -279,6 +287,30 @@ function getJson(url) {
 
 async function readSettings() {
   return readJson(SETTINGS_PATH, {});
+}
+
+function mergeSettings(current, updates) {
+  return {
+    ...current,
+    stationCallsign: cleanString(updates.stationCallsign).toUpperCase(),
+    publicTitle: cleanString(updates.publicTitle),
+    publicSubtitle: cleanString(updates.publicSubtitle),
+    aboutTitle: cleanString(updates.aboutTitle),
+    aboutBody: cleanString(updates.aboutBody),
+    profileImageUrl: cleanString(updates.profileImageUrl),
+    qrzUrl: cleanString(updates.qrzUrl),
+    myGrid: cleanString(updates.myGrid).toUpperCase(),
+    git: {
+      ...(current.git || {}),
+      remote: cleanString(updates.gitRemote) || current.git?.remote || "origin",
+      branch: cleanString(updates.gitBranch) || current.git?.branch || "main",
+      commitTemplate: cleanString(updates.gitCommitTemplate) || current.git?.commitTemplate || "Publish log update"
+    }
+  };
+}
+
+function cleanString(value) {
+  return String(value || "").trim();
 }
 
 async function readJson(file, fallback) {

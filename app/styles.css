@@ -104,11 +104,18 @@ nav a:hover {
   box-shadow: var(--shadow);
 }
 
-.form-panel {
+.form-panel,
+.settings-panel {
   padding: 18px;
 }
 
+.settings-panel {
+  grid-column: 1;
+}
+
 .log-panel {
+  grid-column: 2;
+  grid-row: 1 / span 2;
   min-width: 0;
   overflow: hidden;
 }

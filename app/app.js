@@ -1,8 +1,10 @@
 const form = document.querySelector("#qsoForm");
+const settingsForm = document.querySelector("#settingsForm");
 const rows = document.querySelector("#qsoRows");
 const searchInput = document.querySelector("#searchInput");
 const summary = document.querySelector("#summary");
 const statusEl = document.querySelector("#formStatus");
+const settingsStatusEl = document.querySelector("#settingsStatus");
 const formTitle = document.querySelector("#formTitle");
 const resetButton = document.querySelector("#resetButton");
 const lookupButton = document.querySelector("#lookupButton");
@@ -15,6 +17,7 @@ init();
 
 async function init() {
   setDefaultDateTime();
+  await loadSettings();
   await loadQsos();
   bindEvents();
 }
@@ -27,11 +30,25 @@ function bindEvents() {
   lookupButton.addEventListener("click", lookupCallsign);
   exportButton.addEventListener("click", exportPublic);
   publishButton.addEventListener("click", publish);
+  settingsForm.addEventListener("submit", saveSettings);
 }
 
 async function loadQsos() {
   qsos = await api("/api/qsos");
   renderRows();
+}
+
+async function loadSettings() {
+  const settings = await api("/api/settings");
+  fillSettingsForm(settings);
+}
+
+async function saveSettings(event) {
+  event.preventDefault();
+  const payload = Object.fromEntries(new FormData(settingsForm).entries());
+  const settings = await api("/api/settings", { method: "PUT", body: payload });
+  fillSettingsForm(settings);
+  setSettingsStatus("Settings saved and public config regenerated.");
 }
 
 async function saveQso(event) {
@@ -193,6 +210,23 @@ function clearLookupFields() {
 function setStatus(message, tone = "") {
   statusEl.textContent = message;
   statusEl.dataset.tone = tone;
+}
+
+function setSettingsStatus(message, tone = "") {
+  settingsStatusEl.textContent = message;
+  settingsStatusEl.dataset.tone = tone;
+}
+
+function fillSettingsForm(settings) {
+  const values = {
+    ...settings,
+    gitRemote: settings.git?.remote || "origin",
+    gitBranch: settings.git?.branch || "main",
+    gitCommitTemplate: settings.git?.commitTemplate || "Publish log update"
+  };
+  for (const [key, value] of Object.entries(values)) {
+    if (settingsForm.elements[key]) settingsForm.elements[key].value = value || "";
+  }
 }
 
 async function api(url, options = {}, allowFailure = false) {

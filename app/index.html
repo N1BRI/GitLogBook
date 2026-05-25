@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>GitLogBook</title>
-    <link rel="stylesheet" href="/styles.css?v=3">
+    <link rel="stylesheet" href="/styles.css?v=4">
   </head>
   <body>
     <header class="topbar">
@@ -61,6 +61,36 @@
         <p id="formStatus" class="status"></p>
       </section>
 
+      <section class="panel settings-panel">
+        <div class="panel-title">
+          <div>
+            <h2>Site Settings</h2>
+            <p>Public page branding and links</p>
+          </div>
+        </div>
+        <form id="settingsForm">
+          <div class="split">
+            <label>Station Call <input name="stationCallsign" placeholder="N1BRI"></label>
+            <label>My Grid <input name="myGrid" placeholder="FN31"></label>
+          </div>
+          <label>Public Title <input name="publicTitle" placeholder="N1BRI Logbook"></label>
+          <label>Subtitle <input name="publicSubtitle" placeholder="Read-only amateur radio contact log"></label>
+          <label>About Title <input name="aboutTitle" placeholder="About N1BRI"></label>
+          <label>About Body <textarea name="aboutBody" rows="4"></textarea></label>
+          <label>Profile Image URL <input name="profileImageUrl" placeholder="https://github.com/N1BRI.png"></label>
+          <label>QRZ URL <input name="qrzUrl" placeholder="https://www.qrz.com/db/N1BRI"></label>
+          <div class="split">
+            <label>Git Remote <input name="gitRemote" placeholder="origin"></label>
+            <label>Git Branch <input name="gitBranch" placeholder="main"></label>
+          </div>
+          <label>Commit Message <input name="gitCommitTemplate" placeholder="Publish log update"></label>
+          <div class="actions">
+            <button type="submit">Save Settings</button>
+          </div>
+        </form>
+        <p id="settingsStatus" class="status"></p>
+      </section>
+
       <section class="panel log-panel">
         <div class="panel-title">
           <div>
@@ -88,6 +118,6 @@
       </section>
     </main>
 
-    <script src="/app.js?v=3"></script>
+    <script src="/app.js?v=4"></script>
   </body>
 </html>
