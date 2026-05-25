@@ -31,6 +31,18 @@ data/logbook.adi
 
 The local app is the only writer. The GitHub Pages site only reads generated JSON.
 
+Markdown posts live in:
+
+```text
+content/posts/
+```
+
+Build them into static pages and a searchable index with:
+
+```sh
+npm run posts
+```
+
 ## MVP Features
 
 - Add, edit, and delete QSOs locally.

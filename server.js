@@ -23,6 +23,9 @@ const MIME = {
   ".css": "text/css; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
   ".json": "application/json; charset=utf-8",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".png": "image/png",
   ".svg": "image/svg+xml"
 };
 
@@ -44,6 +47,17 @@ const server = http.createServer(async (req, res) => {
     if (url.pathname.startsWith("/site/")) {
       const pathname = url.pathname === "/site" ? "/index.html" : url.pathname.replace(/^\/site/, "");
       await serveStatic(res, DOCS_DIR, pathname);
+      return;
+    }
+
+    if (url.pathname === "/posts") {
+      res.writeHead(302, { Location: "/posts/" });
+      res.end();
+      return;
+    }
+
+    if (url.pathname.startsWith("/posts/") || url.pathname.startsWith("/assets/") || url.pathname.startsWith("/data/")) {
+      await serveStatic(res, DOCS_DIR, url.pathname);
       return;
     }
 

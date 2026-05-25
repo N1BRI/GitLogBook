@@ -24,6 +24,7 @@ const controls = {
   aboutTitle: document.querySelector("#aboutTitle"),
   aboutBody: document.querySelector("#aboutBody"),
   qrzLink: document.querySelector("#qrzLink"),
+  recentPosts: document.querySelector("#recentPosts"),
   bandHourHeatmap: document.querySelector("#bandHourHeatmap")
 };
 
@@ -32,10 +33,25 @@ init();
 async function init() {
   await fetchConfig();
   state.records = await fetch("./data/log.json").then((response) => response.json());
+  await fetchRecentPosts();
   await fetchStats();
   setupFilters();
   setupMap();
   applyFilters();
+}
+
+async function fetchRecentPosts() {
+  try {
+    const posts = await fetch("/data/posts.json").then((response) => response.json());
+    controls.recentPosts.innerHTML = posts.slice(0, 3).map((post) => `
+      <a class="recent-post" href="${escapeHtml(post.url)}">
+        <span>${escapeHtml(formatDate(post.date))}</span>
+        <strong>${escapeHtml(post.title)}</strong>
+      </a>
+    `).join("");
+  } catch {
+    controls.recentPosts.innerHTML = `<p class="empty">No posts yet.</p>`;
+  }
 }
 
 async function fetchConfig() {
@@ -334,6 +350,12 @@ function fillSelect(select, values) {
     option.textContent = value;
     select.appendChild(option);
   });
+}
+
+function formatDate(value) {
+  if (!value) return "";
+  const [year, month, day] = value.split("-");
+  return `${month}/${day}/${year}`;
 }
 
 function escapeHtml(value) {

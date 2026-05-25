@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>N1BRI Logbook</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-    <link rel="stylesheet" href="/site/styles.css?v=7">
+    <link rel="stylesheet" href="/site/styles.css?v=8">
   </head>
   <body>
     <header class="masthead">
@@ -39,6 +39,13 @@
           <h2 id="aboutTitle">About N1BRI</h2>
           <p id="aboutBody">Thanks for visiting my amateur radio logbook.</p>
           <a id="qrzLink" href="https://www.qrz.com/db/N1BRI" target="_blank" rel="noopener">View QRZ Profile</a>
+          <div class="recent-posts">
+            <div class="section-title">
+              <h2>Recent Posts</h2>
+              <a href="/posts/">Archive</a>
+            </div>
+            <div id="recentPosts"></div>
+          </div>
         </aside>
 
         <div class="map-section">
@@ -116,6 +123,6 @@
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="/site/site.js?v=7"></script>
+    <script src="/site/site.js?v=8"></script>
   </body>
 </html>
