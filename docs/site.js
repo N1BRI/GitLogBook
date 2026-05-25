@@ -90,9 +90,18 @@ function setupMap() {
     document.querySelector("#mapFallback").style.display = "block";
     return;
   }
-  state.map = L.map("map", { scrollWheelZoom: false }).setView([25, 0], 2);
+  const worldBounds = L.latLngBounds([[-85, -180], [85, 180]]);
+  state.map = L.map("map", {
+    scrollWheelZoom: false,
+    worldCopyJump: false,
+    maxBounds: worldBounds,
+    maxBoundsViscosity: 1,
+    minZoom: 2
+  }).setView([25, 0], 2);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    bounds: worldBounds,
     maxZoom: 12,
+    noWrap: true,
     attribution: "&copy; OpenStreetMap contributors"
   }).addTo(state.map);
   state.markers = L.layerGroup().addTo(state.map);
