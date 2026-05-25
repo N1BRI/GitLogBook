@@ -393,6 +393,76 @@ h2 {
   grid-template-columns: 34px 1fr 34px;
 }
 
+.heatmap {
+  margin-top: 13px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.heat-grid {
+  display: grid;
+  grid-template-columns: 44px repeat(24, minmax(18px, 1fr));
+  gap: 3px;
+  min-width: 620px;
+}
+
+.heat-row {
+  display: contents;
+}
+
+.heat-corner,
+.heat-hour,
+.heat-band,
+.heat-cell {
+  min-height: 22px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 22px;
+  text-align: center;
+}
+
+.heat-corner,
+.heat-hour,
+.heat-band {
+  color: #536170;
+  background: #eef3f7;
+}
+
+.heat-band {
+  color: var(--navy);
+}
+
+.heat-cell {
+  background: #eef3f7;
+  color: transparent;
+}
+
+.heat-cell.level-1 {
+  background: #d9f2ef;
+  color: #0d625d;
+}
+
+.heat-cell.level-2 {
+  background: #9de3da;
+  color: #0c4f4b;
+}
+
+.heat-cell.level-3 {
+  background: #4ecdc0;
+  color: #083f3c;
+}
+
+.heat-cell.level-4 {
+  background: #0f9f92;
+  color: white;
+}
+
+.heat-cell.level-5 {
+  background: var(--navy);
+  color: white;
+}
+
 .log {
   overflow: hidden;
 }

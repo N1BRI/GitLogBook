@@ -23,7 +23,8 @@ const controls = {
   profileImage: document.querySelector("#profileImage"),
   aboutTitle: document.querySelector("#aboutTitle"),
   aboutBody: document.querySelector("#aboutBody"),
-  qrzLink: document.querySelector("#qrzLink")
+  qrzLink: document.querySelector("#qrzLink"),
+  bandHourHeatmap: document.querySelector("#bandHourHeatmap")
 };
 
 init();
@@ -147,7 +148,7 @@ function renderTable() {
 function renderCharts() {
   renderBars("#bandChart", countBy("band"), 8);
   renderBars("#modeChart", countBy("mode"), 8);
-  renderBars("#hourChart", countByHour(), 24);
+  renderBandHourHeatmap();
 }
 
 function renderViewStats() {
@@ -228,6 +229,45 @@ function renderBars(selector, counts, limit) {
     : `<p class="empty">No data</p>`;
 }
 
+function renderBandHourHeatmap() {
+  const bands = uniqueFromFiltered("band").sort(compareBands);
+  const hours = Array.from({ length: 24 }, (_, hour) => String(hour).padStart(2, "0"));
+  const counts = new Map();
+  let max = 0;
+
+  state.filtered.forEach((qso) => {
+    const band = qso.band || "Unknown";
+    const hour = qso.time ? qso.time.slice(0, 2) : "00";
+    const key = `${band}|${hour}`;
+    const count = (counts.get(key) || 0) + 1;
+    counts.set(key, count);
+    max = Math.max(max, count);
+  });
+
+  if (!bands.length) {
+    controls.bandHourHeatmap.innerHTML = `<p class="empty">No data</p>`;
+    return;
+  }
+
+  const header = [`<span class="heat-corner">UTC</span>`, ...hours.map((hour) => `<span class="heat-hour">${hour}</span>`)].join("");
+  const rows = bands.map((band) => {
+    const cells = hours.map((hour) => {
+      const count = counts.get(`${band}|${hour}`) || 0;
+      const level = heatLevel(count, max);
+      const title = `${band} at ${hour}Z: ${count} QSO${count === 1 ? "" : "s"}`;
+      return `<span class="heat-cell level-${level}" title="${escapeHtml(title)}">${count || ""}</span>`;
+    }).join("");
+    return `<div class="heat-row"><span class="heat-band">${escapeHtml(band)}</span>${cells}</div>`;
+  }).join("");
+
+  controls.bandHourHeatmap.innerHTML = `<div class="heat-grid">${header}${rows}</div>`;
+}
+
+function heatLevel(count, max) {
+  if (!count || !max) return 0;
+  return Math.max(1, Math.ceil((count / max) * 5));
+}
+
 function sortedEntries(counts) {
   return Object.entries(counts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
 }
@@ -251,14 +291,17 @@ function countBy(field) {
   }, {});
 }
 
-function countByHour() {
-  const counts = {};
-  for (let hour = 0; hour < 24; hour += 1) counts[String(hour).padStart(2, "0")] = 0;
-  state.filtered.forEach((qso) => {
-    const hour = qso.time ? qso.time.slice(0, 2) : "00";
-    counts[hour] = (counts[hour] || 0) + 1;
-  });
-  return counts;
+function uniqueFromFiltered(field) {
+  return [...new Set(state.filtered.map((qso) => qso[field]).filter(Boolean))];
+}
+
+function compareBands(a, b) {
+  return bandRank(a) - bandRank(b) || a.localeCompare(b);
+}
+
+function bandRank(band) {
+  const match = String(band || "").match(/^(\d+)/);
+  return match ? Number(match[1]) : Number.MAX_SAFE_INTEGER;
 }
 
 function locationBadge(qso) {
