@@ -155,7 +155,7 @@ function renderTable() {
 }
 
 function renderCharts() {
-  renderBars("#bandChart", countBy("band"), 8);
+  renderBars("#bandChart", countBy("band"), 12, compareBandEntries);
   renderBars("#modeChart", countBy("mode"), 8);
   renderBandHourHeatmap();
 }
@@ -223,10 +223,10 @@ function renderHomeMarker() {
     .addTo(state.map);
 }
 
-function renderBars(selector, counts, limit) {
+function renderBars(selector, counts, limit, sorter = sortedEntries) {
   const el = document.querySelector(selector);
-  const entries = sortedEntries(counts).slice(0, limit);
-  const max = entries[0]?.[1] || 1;
+  const entries = sorter(counts).slice(0, limit);
+  const max = Math.max(...Object.values(counts), 1);
   el.innerHTML = entries.length
     ? entries.map(([key, count]) => `
       <div class="bar">
@@ -279,6 +279,10 @@ function heatLevel(count, max) {
 
 function sortedEntries(counts) {
   return Object.entries(counts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+}
+
+function compareBandEntries(counts) {
+  return Object.entries(counts).sort(([a], [b]) => compareBands(a, b));
 }
 
 function setTopStat(statEl, countEl, entries) {
