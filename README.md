@@ -121,6 +121,12 @@ Regenerate public files:
 npm run export
 ```
 
+Run the test/build check:
+
+```sh
+npm run ci
+```
+
 ## Import ADIF
 
 From the local app, use the **Import ADIF** panel and paste a local `.adi` path.
@@ -164,7 +170,7 @@ npm run posts
 
 ## Publishing
 
-GitHub Pages should serve from:
+For manual publishing, GitHub Pages can serve from:
 
 ```text
 main /docs
@@ -179,6 +185,21 @@ git push origin main
 ```
 
 Only generated public files are committed by default.
+
+For automated deployment, this repo includes GitHub Actions:
+
+- `.github/workflows/ci.yml` runs tests and a static export on pushes and pull requests.
+- `.github/workflows/pages.yml` builds `docs/` and deploys it with GitHub Pages Actions.
+
+To use the Pages workflow in your personal deployment repo, open the GitHub repository settings and set:
+
+```text
+Settings -> Pages -> Build and deployment -> Source -> GitHub Actions
+```
+
+Then push to `main`. The workflow will rebuild the public export and deploy the `docs/` folder.
+
+For the reusable software repo, CI is the important workflow. For your personal `YOURCALL-Logbook` repo, both CI and Pages deployment are useful.
 
 ## Privacy
 

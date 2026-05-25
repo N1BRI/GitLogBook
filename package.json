@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "node server.js",
     "export": "node scripts/export-public.js && node scripts/build-posts.js",
-    "posts": "node scripts/build-posts.js"
+    "posts": "node scripts/build-posts.js",
+    "test": "node --test",
+    "ci": "npm test && npm run export"
   },
   "engines": {
     "node": ">=20"
