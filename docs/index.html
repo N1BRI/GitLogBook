@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>N1BRI Logbook</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="/site/styles.css?v=3">
+  </head>
+  <body>
+    <header class="masthead">
+      <div>
+        <span class="eyebrow">GitLogBook</span>
+        <h1 id="siteTitle">N1BRI Logbook</h1>
+        <p id="subtitle">Read-only amateur radio contact log</p>
+      </div>
+      <div class="stats" aria-label="Log summary">
+        <span><strong id="totalStat">0</strong> QSOs</span>
+        <span><strong id="mappedStat">0</strong> mapped</span>
+        <span><strong id="unmappedStat">0</strong> unmapped</span>
+      </div>
+    </header>
+
+    <main class="shell">
+      <section class="filters" aria-label="Log filters">
+        <input id="search" type="search" placeholder="Search callsign, band, mode, grid">
+        <div class="date-pair">
+          <input id="dateFrom" type="date" aria-label="Date from">
+          <input id="dateTo" type="date" aria-label="Date to">
+        </div>
+        <select id="bandFilter" aria-label="Band filter"><option value="">All bands</option></select>
+        <select id="modeFilter" aria-label="Mode filter"><option value="">All modes</option></select>
+      </section>
+
+      <section class="overview">
+        <aside class="about-panel">
+          <img id="profileImage" class="profile-image" src="https://github.com/N1BRI.png" alt="N1BRI profile photo">
+          <span class="label">About Me</span>
+          <h2 id="aboutTitle">About N1BRI</h2>
+          <p id="aboutBody">Thanks for visiting my amateur radio logbook.</p>
+          <a id="qrzLink" href="https://www.qrz.com/db/N1BRI" target="_blank" rel="noopener">View QRZ Profile</a>
+        </aside>
+
+        <div class="map-section">
+          <div id="map"></div>
+          <div id="mapFallback">Map tiles are unavailable, but the log data is loaded.</div>
+          <div class="map-legend">
+            <span><i class="dot confirmed"></i>Confirmed grid</span>
+            <span><i class="dot estimated"></i>Estimated</span>
+          </div>
+        </div>
+
+        <aside class="side-panel">
+          <div>
+            <span class="label">Current View</span>
+            <strong id="viewStat">0</strong>
+            <p>contacts match the active filters</p>
+          </div>
+          <div>
+            <span class="label">Top Band</span>
+            <strong id="topBandStat">-</strong>
+            <p id="topBandCount">No contacts yet</p>
+          </div>
+          <div>
+            <span class="label">Top Mode</span>
+            <strong id="topModeStat">-</strong>
+            <p id="topModeCount">No contacts yet</p>
+          </div>
+        </aside>
+      </section>
+
+      <section class="insights">
+        <div>
+          <div class="section-title">
+            <h2>Bands</h2>
+          </div>
+          <div id="bandChart" class="bars"></div>
+        </div>
+        <div>
+          <div class="section-title">
+            <h2>Modes</h2>
+          </div>
+          <div id="modeChart" class="bars"></div>
+        </div>
+        <div>
+          <div class="section-title">
+            <h2>UTC Hours</h2>
+          </div>
+          <div id="hourChart" class="bars compact"></div>
+        </div>
+      </section>
+
+      <section class="log">
+        <div class="log-head">
+          <h2>Contacts</h2>
+          <p id="resultCount">0 shown</p>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Call</th>
+                <th>Band</th>
+                <th>Mode</th>
+                <th>Grid</th>
+                <th>Location</th>
+              </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="/site/site.js?v=3"></script>
+  </body>
+</html>

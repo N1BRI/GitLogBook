@@ -1,0 +1,17 @@
+{
+  "total": 1,
+  "mapped": 1,
+  "unmapped": 0,
+  "byBand": {
+    "30m": 1
+  },
+  "byMode": {
+    "CW": 1
+  },
+  "byDay": {
+    "2026-05-24": 1
+  },
+  "byHour": {
+    "23": 1
+  }
+}

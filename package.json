@@ -1,0 +1,13 @@
+{
+  "name": "gitlogbook",
+  "version": "0.1.0",
+  "description": "Local ADIF ham radio logger with a read-only GitHub Pages viewer.",
+  "type": "commonjs",
+  "scripts": {
+    "dev": "node server.js",
+    "export": "node scripts/export-public.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

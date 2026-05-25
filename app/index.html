@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>GitLogBook</title>
+    <link rel="stylesheet" href="/styles.css?v=3">
+  </head>
+  <body>
+    <header class="topbar">
+      <div>
+        <h1>GitLogBook</h1>
+        <p>Local ADIF logger and static public log publisher</p>
+      </div>
+      <nav>
+        <a href="/site" target="_blank">Preview Site</a>
+        <button id="exportButton" type="button">Export</button>
+        <button id="publishButton" type="button">Publish</button>
+      </nav>
+    </header>
+
+    <main class="layout">
+      <section class="panel form-panel">
+        <div class="panel-title">
+          <h2 id="formTitle">New QSO</h2>
+          <button id="resetButton" type="button" class="ghost">Clear</button>
+        </div>
+        <form id="qsoForm">
+          <input type="hidden" name="id">
+          <label>Callsign <input name="call" required autocomplete="off" placeholder="W1AW"></label>
+          <div class="split">
+            <label>Date <input name="qsoDate" required type="date"></label>
+            <label>Time UTC <input name="timeOn" required type="time"></label>
+          </div>
+          <div class="split">
+            <label>Band <input name="band" placeholder="20m"></label>
+            <label>Frequency <input name="freq" placeholder="14.250"></label>
+          </div>
+          <div class="split">
+            <label>Mode <input name="mode" placeholder="SSB"></label>
+            <label>Grid <input name="grid" placeholder="FN31"></label>
+          </div>
+          <div class="split">
+            <label>RST Sent <input name="rstSent" placeholder="59"></label>
+            <label>RST Rcvd <input name="rstRcvd" placeholder="59"></label>
+          </div>
+          <div class="split">
+            <label>Country <input name="country" placeholder="United States"></label>
+            <label>State <input name="state" placeholder="CT"></label>
+          </div>
+          <input type="hidden" name="lat">
+          <input type="hidden" name="lon">
+          <input type="hidden" name="locationSource">
+          <input type="hidden" name="locationConfidence">
+          <label>Private Comment <textarea name="comment" rows="3"></textarea></label>
+          <div class="actions">
+            <button id="lookupButton" type="button" class="secondary">Lookup</button>
+            <button type="submit">Save QSO</button>
+          </div>
+        </form>
+        <p id="formStatus" class="status"></p>
+      </section>
+
+      <section class="panel log-panel">
+        <div class="panel-title">
+          <div>
+            <h2>Local Log</h2>
+            <p id="summary">0 QSOs</p>
+          </div>
+          <input id="searchInput" type="search" placeholder="Search calls, band, mode, grid">
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Call</th>
+                <th>Band</th>
+                <th>Mode</th>
+                <th>Grid</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="qsoRows"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+
+    <script src="/app.js?v=3"></script>
+  </body>
+</html>

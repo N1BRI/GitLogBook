@@ -1,0 +1,31 @@
+{
+  "stationCallsign": "N1BRI",
+  "publicTitle": "N1BRI Logbook",
+  "publicSubtitle": "Read-only amateur radio contact log",
+  "aboutTitle": "About N1BRI",
+  "aboutBody": "Thanks for visiting my amateur radio logbook. This page is a read-only view of recent contacts from my local ADIF log.",
+  "profileImageUrl": "https://github.com/N1BRI.png",
+  "qrzUrl": "https://www.qrz.com/db/N1BRI",
+  "myGrid": "",
+  "publicFields": [
+    "id",
+    "call",
+    "qsoDate",
+    "timeOn",
+    "band",
+    "freq",
+    "mode",
+    "rstSent",
+    "rstRcvd",
+    "country",
+    "state",
+    "grid",
+    "locationSource",
+    "locationConfidence"
+  ],
+  "git": {
+    "remote": "origin",
+    "branch": "main",
+    "commitTemplate": "Publish log update"
+  }
+}

@@ -1,0 +1,24 @@
+[
+  {
+    "id": "29842db6-10f0-46ed-bded-dfd76927422d",
+    "call": "KZ8R",
+    "call_lc": "kz8r",
+    "qsoDate": "20260524",
+    "date": "2026-05-24",
+    "timeOn": "2354",
+    "time": "23:54",
+    "band": "30m",
+    "freq": "10.115MHz",
+    "mode": "CW",
+    "rstSent": "599",
+    "rstRcvd": "589",
+    "country": "United States",
+    "state": "",
+    "grid": "FM05",
+    "lat": 35.4581305,
+    "lon": -79.2170417,
+    "locationSource": "fcc_lookup",
+    "locationConfidence": "estimated",
+    "mapped": true
+  }
+]

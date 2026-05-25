@@ -1,0 +1,264 @@
+const state = {
+  records: [],
+  filtered: [],
+  map: null,
+  markers: null
+};
+
+const controls = {
+  search: document.querySelector("#search"),
+  dateFrom: document.querySelector("#dateFrom"),
+  dateTo: document.querySelector("#dateTo"),
+  band: document.querySelector("#bandFilter"),
+  mode: document.querySelector("#modeFilter"),
+  rows: document.querySelector("#rows"),
+  resultCount: document.querySelector("#resultCount"),
+  viewStat: document.querySelector("#viewStat"),
+  topBandStat: document.querySelector("#topBandStat"),
+  topBandCount: document.querySelector("#topBandCount"),
+  topModeStat: document.querySelector("#topModeStat"),
+  topModeCount: document.querySelector("#topModeCount"),
+  profileImage: document.querySelector("#profileImage"),
+  aboutTitle: document.querySelector("#aboutTitle"),
+  aboutBody: document.querySelector("#aboutBody"),
+  qrzLink: document.querySelector("#qrzLink")
+};
+
+init();
+
+async function init() {
+  await fetchConfig();
+  state.records = await fetch("./data/log.json").then((response) => response.json());
+  await fetchStats();
+  setupFilters();
+  setupMap();
+  applyFilters();
+}
+
+async function fetchConfig() {
+  try {
+    const config = await fetch("./data/site-config.json").then((response) => response.json());
+    const title = config.title || "Public Logbook";
+    const subtitle = config.subtitle || "Read-only amateur radio contact log";
+    document.title = title;
+    document.querySelector("#siteTitle").textContent = title;
+    document.querySelector("#subtitle").textContent = subtitle;
+    controls.aboutTitle.textContent = config.aboutTitle || "About Me";
+    controls.aboutBody.textContent = config.aboutBody || "";
+    if (config.profileImageUrl) {
+      controls.profileImage.src = config.profileImageUrl;
+      controls.profileImage.alt = `${config.stationCallsign || "Operator"} profile photo`;
+      controls.profileImage.hidden = false;
+    } else {
+      controls.profileImage.hidden = true;
+    }
+    if (config.qrzUrl) {
+      controls.qrzLink.href = config.qrzUrl;
+      controls.qrzLink.hidden = false;
+    } else {
+      controls.qrzLink.hidden = true;
+    }
+  } catch {
+    document.querySelector("#siteTitle").textContent = "Public Logbook";
+  }
+}
+
+async function fetchStats() {
+  const stats = await fetch("./data/stats.json").then((response) => response.json());
+  document.querySelector("#totalStat").textContent = stats.total || 0;
+  document.querySelector("#mappedStat").textContent = stats.mapped || 0;
+  document.querySelector("#unmappedStat").textContent = stats.unmapped || 0;
+}
+
+function setupFilters() {
+  fillSelect(controls.band, unique("band"));
+  fillSelect(controls.mode, unique("mode"));
+  Object.values(controls).forEach((control) => {
+    if (control instanceof HTMLInputElement || control instanceof HTMLSelectElement) {
+      control.addEventListener("input", applyFilters);
+    }
+  });
+}
+
+function setupMap() {
+  if (!window.L) {
+    document.querySelector("#map").style.display = "none";
+    document.querySelector("#mapFallback").style.display = "block";
+    return;
+  }
+  state.map = L.map("map", { scrollWheelZoom: false }).setView([25, 0], 2);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 12,
+    attribution: "&copy; OpenStreetMap contributors"
+  }).addTo(state.map);
+  state.markers = L.layerGroup().addTo(state.map);
+}
+
+function applyFilters() {
+  const query = controls.search.value.trim().toLowerCase();
+  const from = controls.dateFrom.value.replaceAll("-", "");
+  const to = controls.dateTo.value.replaceAll("-", "");
+  const band = controls.band.value;
+  const mode = controls.mode.value;
+
+  state.filtered = state.records.filter((qso) => {
+    if (query && ![qso.call, qso.band, qso.mode, qso.grid, qso.country, qso.state].join(" ").toLowerCase().includes(query)) return false;
+    if (from && qso.qsoDate < from) return false;
+    if (to && qso.qsoDate > to) return false;
+    if (band && qso.band !== band) return false;
+    if (mode && qso.mode !== mode) return false;
+    return true;
+  });
+
+  renderTable();
+  renderCharts();
+  renderViewStats();
+  renderMap();
+}
+
+function renderTable() {
+  controls.resultCount.textContent = `${state.filtered.length} shown`;
+  controls.rows.innerHTML = "";
+  if (!state.filtered.length) {
+    controls.rows.innerHTML = `<tr><td colspan="7" class="empty">No contacts match these filters.</td></tr>`;
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
+  state.filtered.slice(0, 500).forEach((qso) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${escapeHtml(qso.date)}</td>
+      <td>${escapeHtml(qso.time)}</td>
+      <td><strong>${escapeHtml(qso.call)}</strong></td>
+      <td>${escapeHtml(qso.band)}</td>
+      <td>${escapeHtml(qso.mode)}</td>
+      <td>${escapeHtml(qso.grid)}</td>
+      <td>${locationBadge(qso)}</td>
+    `;
+    fragment.appendChild(tr);
+  });
+  controls.rows.appendChild(fragment);
+}
+
+function renderCharts() {
+  renderBars("#bandChart", countBy("band"), 8);
+  renderBars("#modeChart", countBy("mode"), 8);
+  renderBars("#hourChart", countByHour(), 24);
+}
+
+function renderViewStats() {
+  const bandEntries = sortedEntries(countBy("band"));
+  const modeEntries = sortedEntries(countBy("mode"));
+  controls.viewStat.textContent = state.filtered.length;
+  setTopStat(controls.topBandStat, controls.topBandCount, bandEntries);
+  setTopStat(controls.topModeStat, controls.topModeCount, modeEntries);
+}
+
+function renderMap() {
+  if (!state.map) return;
+  state.markers.clearLayers();
+  const grouped = new Map();
+
+  state.filtered.forEach((qso) => {
+    if (!qso.mapped) return;
+    const key = qso.grid || `${Number(qso.lat).toFixed(1)},${Number(qso.lon).toFixed(1)}`;
+    const bucket = grouped.get(key) || { ...qso, count: 0, calls: new Set() };
+    bucket.count += 1;
+    bucket.calls.add(qso.call);
+    grouped.set(key, bucket);
+  });
+
+  const bounds = [];
+  grouped.forEach((point) => {
+    const marker = L.circleMarker([point.lat, point.lon], {
+      radius: Math.min(22, 6 + Math.sqrt(point.count) * 2),
+      color: point.locationConfidence === "estimated" ? "#b7791f" : "#0f766e",
+      fillColor: point.locationConfidence === "estimated" ? "#f6c453" : "#14b8a6",
+      fillOpacity: 0.72,
+      weight: 2
+    });
+    marker.bindPopup(`<strong>${escapeHtml(point.grid || point.call)}</strong><br>${point.count} QSOs<br>${[...point.calls].slice(0, 8).join(", ")}`);
+    marker.addTo(state.markers);
+    bounds.push([point.lat, point.lon]);
+  });
+
+  if (bounds.length) state.map.fitBounds(bounds, { padding: [30, 30], maxZoom: 5 });
+}
+
+function renderBars(selector, counts, limit) {
+  const el = document.querySelector(selector);
+  const entries = sortedEntries(counts).slice(0, limit);
+  const max = entries[0]?.[1] || 1;
+  el.innerHTML = entries.length
+    ? entries.map(([key, count]) => `
+      <div class="bar">
+        <span>${escapeHtml(key)}</span>
+        <span class="bar-track"><span class="bar-fill" style="width:${Math.round((count / max) * 100)}%"></span></span>
+        <strong>${count}</strong>
+      </div>
+    `).join("")
+    : `<p class="empty">No data</p>`;
+}
+
+function sortedEntries(counts) {
+  return Object.entries(counts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+}
+
+function setTopStat(statEl, countEl, entries) {
+  if (!entries.length) {
+    statEl.textContent = "-";
+    countEl.textContent = "No contacts yet";
+    return;
+  }
+  const [label, count] = entries[0];
+  statEl.textContent = label;
+  countEl.textContent = `${count} contact${count === 1 ? "" : "s"}`;
+}
+
+function countBy(field) {
+  return state.filtered.reduce((counts, qso) => {
+    const key = qso[field] || "Unknown";
+    counts[key] = (counts[key] || 0) + 1;
+    return counts;
+  }, {});
+}
+
+function countByHour() {
+  const counts = {};
+  for (let hour = 0; hour < 24; hour += 1) counts[String(hour).padStart(2, "0")] = 0;
+  state.filtered.forEach((qso) => {
+    const hour = qso.time ? qso.time.slice(0, 2) : "00";
+    counts[hour] = (counts[hour] || 0) + 1;
+  });
+  return counts;
+}
+
+function locationBadge(qso) {
+  if (!qso.mapped) return `<span class="badge unmapped">Unmapped</span>`;
+  if (qso.locationConfidence === "estimated") return `<span class="badge estimated">Estimated</span>`;
+  return `<span class="badge">Confirmed</span>`;
+}
+
+function unique(field) {
+  return [...new Set(state.records.map((qso) => qso[field]).filter(Boolean))].sort();
+}
+
+function fillSelect(select, values) {
+  values.forEach((value) => {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = value;
+    select.appendChild(option);
+  });
+}
+
+function escapeHtml(value) {
+  return String(value || "").replace(/[&<>"']/g, (char) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[char]);
+}
