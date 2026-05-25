@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">GitLogBook public logbook site</title>
+  <desc id="desc">A representative screenshot of the public GitHub Pages logbook with profile sidebar, map, stats, charts, heatmap, and contact table.</desc>
+  <rect width="1200" height="760" fill="#f5f7fa"/>
+  <rect width="1200" height="112" fill="#152238"/>
+  <rect y="108" width="1200" height="4" fill="#2dd4bf"/>
+  <text x="28" y="38" fill="#9fb3c8" font-family="Arial, sans-serif" font-size="12" font-weight="700">GITLOGBOOK</text>
+  <text x="28" y="78" fill="#fff" font-family="Arial, sans-serif" font-size="42" font-weight="700">YOURCALL Logbook</text>
+  <g>
+    <rect x="760" y="24" width="118" height="66" rx="8" fill="#ffffff14" stroke="#ffffff2a"/>
+    <rect x="892" y="24" width="118" height="66" rx="8" fill="#ffffff14" stroke="#ffffff2a"/>
+    <rect x="1024" y="24" width="118" height="66" rx="8" fill="#ffffff14" stroke="#ffffff2a"/>
+    <text x="782" y="55" fill="#fff" font-family="Arial, sans-serif" font-size="24" font-weight="700">2</text>
+    <text x="914" y="55" fill="#fff" font-family="Arial, sans-serif" font-size="24" font-weight="700">2</text>
+    <text x="1046" y="55" fill="#fff" font-family="Arial, sans-serif" font-size="24" font-weight="700">0</text>
+    <text x="782" y="75" fill="#d7e0ea" font-family="Arial, sans-serif" font-size="13">QSOs</text>
+    <text x="914" y="75" fill="#d7e0ea" font-family="Arial, sans-serif" font-size="13">mapped</text>
+    <text x="1046" y="75" fill="#d7e0ea" font-family="Arial, sans-serif" font-size="13">unmapped</text>
+  </g>
+  <rect x="20" y="134" width="1160" height="58" rx="8" fill="#fff" stroke="#dce3ea"/>
+  <rect x="42" y="148" width="390" height="30" rx="6" fill="#fbfdff" stroke="#c8d2dc"/>
+  <rect x="450" y="148" width="170" height="30" rx="6" fill="#fbfdff" stroke="#c8d2dc"/>
+  <rect x="638" y="148" width="170" height="30" rx="6" fill="#fbfdff" stroke="#c8d2dc"/>
+  <rect x="826" y="148" width="140" height="30" rx="6" fill="#fbfdff" stroke="#c8d2dc"/>
+  <rect x="984" y="148" width="140" height="30" rx="6" fill="#fbfdff" stroke="#c8d2dc"/>
+
+  <rect x="20" y="210" width="282" height="340" rx="8" fill="#fff" stroke="#dce3ea"/>
+  <circle cx="72" cy="270" r="38" fill="#dbeafe"/>
+  <text x="38" y="344" fill="#9fb3c8" font-family="Arial, sans-serif" font-size="12" font-weight="700">ABOUT ME</text>
+  <text x="38" y="378" fill="#152238" font-family="Arial, sans-serif" font-size="22" font-weight="700">About YOURCALL</text>
+  <text x="38" y="410" fill="#405064" font-family="Arial, sans-serif" font-size="15">Public profile, station notes,</text>
+  <text x="38" y="432" fill="#405064" font-family="Arial, sans-serif" font-size="15">and recent Markdown posts.</text>
+  <line x1="38" y1="464" x2="264" y2="464" stroke="#dce3ea"/>
+  <text x="38" y="494" fill="#152238" font-family="Arial, sans-serif" font-size="18" font-weight="700">Recent Posts</text>
+  <text x="38" y="526" fill="#0f766e" font-family="Arial, sans-serif" font-size="15" text-decoration="underline">Sample Field Note</text>
+
+  <rect x="318" y="210" width="566" height="340" rx="8" fill="#d7e4ef" stroke="#dce3ea"/>
+  <path d="M360 360 C450 260 540 390 650 300 C730 245 810 322 850 280" fill="none" stroke="#aab9c8" stroke-width="20" opacity=".65"/>
+  <circle cx="520" cy="334" r="14" fill="#14b8a6" stroke="#0f766e" stroke-width="3"/>
+  <circle cx="682" cy="292" r="12" fill="#f6c453" stroke="#b7791f" stroke-width="3"/>
+  <path d="M423 410 h28 v22 h-28 z M416 410 l21 -20 l21 20" fill="#152238" stroke="#fff" stroke-width="3"/>
+  <rect x="704" y="224" width="154" height="34" rx="8" fill="#ffffffee" stroke="#dce3ea"/>
+  <circle cx="724" cy="241" r="5" fill="#0f766e"/><text x="736" y="246" fill="#3c4858" font-family="Arial, sans-serif" font-size="12" font-weight="700">Confirmed grid</text>
+
+  <rect x="900" y="210" width="280" height="340" rx="8" fill="#fff" stroke="#dce3ea"/>
+  <text x="928" y="252" fill="#9fb3c8" font-family="Arial, sans-serif" font-size="12" font-weight="700">CURRENT VIEW</text>
+  <text x="928" y="304" fill="#152238" font-family="Arial, sans-serif" font-size="42" font-weight="700">2</text>
+  <text x="928" y="336" fill="#697586" font-family="Arial, sans-serif" font-size="15">contacts match filters</text>
+  <line x1="928" y1="370" x2="1142" y2="370" stroke="#dce3ea"/>
+  <text x="928" y="406" fill="#9fb3c8" font-family="Arial, sans-serif" font-size="12" font-weight="700">TOP BAND</text>
+  <text x="928" y="454" fill="#152238" font-family="Arial, sans-serif" font-size="34" font-weight="700">20m</text>
+
+  <rect x="20" y="570" width="1160" height="156" rx="8" fill="#fff" stroke="#dce3ea"/>
+  <text x="44" y="604" fill="#152238" font-family="Arial, sans-serif" font-size="18" font-weight="700">Bands</text>
+  <rect x="44" y="624" width="180" height="10" rx="5" fill="#0f766e"/>
+  <rect x="44" y="650" width="140" height="10" rx="5" fill="#0f766e"/>
+  <text x="430" y="604" fill="#152238" font-family="Arial, sans-serif" font-size="18" font-weight="700">Band x UTC</text>
+  <g transform="translate(430 626)">
+    <rect width="18" height="18" fill="#d9f2ef"/><rect x="22" width="18" height="18" fill="#9de3da"/><rect x="44" width="18" height="18" fill="#0f9f92"/><rect x="66" width="18" height="18" fill="#152238"/>
+    <rect y="22" width="18" height="18" fill="#eef3f7"/><rect x="22" y="22" width="18" height="18" fill="#d9f2ef"/><rect x="44" y="22" width="18" height="18" fill="#4ecdc0"/><rect x="66" y="22" width="18" height="18" fill="#9de3da"/>
+  </g>
+  <text x="760" y="604" fill="#152238" font-family="Arial, sans-serif" font-size="18" font-weight="700">Contacts</text>
+  <rect x="760" y="622" width="350" height="1" fill="#dce3ea"/>
+  <text x="760" y="650" fill="#263344" font-family="Arial, sans-serif" font-size="14">2026-01-03  K1ABC  40m  CW</text>
+  <text x="760" y="678" fill="#263344" font-family="Arial, sans-serif" font-size="14">2026-01-02  W1AW   20m  SSB</text>
+</svg>

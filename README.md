@@ -25,6 +25,20 @@ The local app is the only writer. The public site is read-only.
 - Markdown blog/archive with searchable static post index.
 - Git-based publish flow for GitHub Pages.
 
+## Screenshots
+
+### Local Logger
+
+![Local logger UI](docs/screenshots/local-logger.svg)
+
+### Public Logbook
+
+![Public GitHub Pages logbook](docs/screenshots/public-logbook.svg)
+
+### Blog Archive
+
+![Markdown blog archive](docs/screenshots/blog-archive.svg)
+
 ## Repository Model
 
 For real use, split software and deployment:

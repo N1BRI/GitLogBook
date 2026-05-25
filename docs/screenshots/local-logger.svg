@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+  <title id="title">GitLogBook local logger UI</title>
+  <desc id="desc">A representative screenshot of the local GitLogBook logger with QSO entry, settings, import, and log table panels.</desc>
+  <rect width="1200" height="760" fill="#f4f6f5"/>
+  <rect width="1200" height="84" fill="#102522"/>
+  <text x="34" y="50" fill="#fff" font-family="Arial, sans-serif" font-size="30" font-weight="700">GitLogBook</text>
+  <text x="34" y="72" fill="#b7c9c4" font-family="Arial, sans-serif" font-size="15">Local ADIF logger and static public log publisher</text>
+  <rect x="918" y="24" width="104" height="38" rx="6" fill="#0f766e"/>
+  <text x="940" y="48" fill="#fff" font-family="Arial, sans-serif" font-size="14" font-weight="700">Export</text>
+  <rect x="1034" y="24" width="112" height="38" rx="6" fill="#0f766e"/>
+  <text x="1058" y="48" fill="#fff" font-family="Arial, sans-serif" font-size="14" font-weight="700">Publish</text>
+
+  <rect x="24" y="108" width="390" height="322" rx="8" fill="#fff" stroke="#d9e0dd"/>
+  <text x="46" y="145" fill="#17211f" font-family="Arial, sans-serif" font-size="22" font-weight="700">New QSO</text>
+  <g fill="#fbfcfc" stroke="#d9e0dd">
+    <rect x="46" y="168" width="322" height="38" rx="6"/>
+    <rect x="46" y="224" width="148" height="38" rx="6"/>
+    <rect x="210" y="224" width="158" height="38" rx="6"/>
+    <rect x="46" y="280" width="148" height="38" rx="6"/>
+    <rect x="210" y="280" width="158" height="38" rx="6"/>
+    <rect x="46" y="336" width="322" height="54" rx="6"/>
+  </g>
+  <g fill="#66716d" font-family="Arial, sans-serif" font-size="12" font-weight="700">
+    <text x="46" y="160">Callsign</text>
+    <text x="46" y="216">Date</text>
+    <text x="210" y="216">Time UTC</text>
+    <text x="46" y="272">Band</text>
+    <text x="210" y="272">Mode</text>
+    <text x="46" y="328">Private Comment</text>
+  </g>
+  <rect x="46" y="406" width="96" height="36" rx="6" fill="#335c67"/>
+  <text x="68" y="429" fill="#fff" font-family="Arial, sans-serif" font-size="14" font-weight="700">Lookup</text>
+  <rect x="266" y="406" width="102" height="36" rx="6" fill="#0f766e"/>
+  <text x="286" y="429" fill="#fff" font-family="Arial, sans-serif" font-size="14" font-weight="700">Save QSO</text>
+
+  <rect x="24" y="452" width="390" height="238" rx="8" fill="#fff" stroke="#d9e0dd"/>
+  <text x="46" y="489" fill="#17211f" font-family="Arial, sans-serif" font-size="22" font-weight="700">Site Settings</text>
+  <g fill="#fbfcfc" stroke="#d9e0dd">
+    <rect x="46" y="512" width="148" height="36" rx="6"/>
+    <rect x="210" y="512" width="158" height="36" rx="6"/>
+    <rect x="46" y="568" width="322" height="36" rx="6"/>
+    <rect x="46" y="624" width="322" height="36" rx="6"/>
+  </g>
+  <g fill="#66716d" font-family="Arial, sans-serif" font-size="12" font-weight="700">
+    <text x="46" y="504">Station Call</text>
+    <text x="210" y="504">My Grid</text>
+    <text x="46" y="560">Public Title</text>
+    <text x="46" y="616">Profile Image URL</text>
+  </g>
+
+  <rect x="438" y="108" width="738" height="582" rx="8" fill="#fff" stroke="#d9e0dd"/>
+  <text x="462" y="145" fill="#17211f" font-family="Arial, sans-serif" font-size="22" font-weight="700">Local Log</text>
+  <rect x="924" y="120" width="220" height="36" rx="6" fill="#fbfcfc" stroke="#d9e0dd"/>
+  <text x="946" y="143" fill="#66716d" font-family="Arial, sans-serif" font-size="13">Search calls, band, mode</text>
+  <rect x="438" y="174" width="738" height="42" fill="#edf3f1"/>
+  <g fill="#42504c" font-family="Arial, sans-serif" font-size="12" font-weight="700">
+    <text x="462" y="200">DATE</text>
+    <text x="580" y="200">TIME</text>
+    <text x="690" y="200">CALL</text>
+    <text x="820" y="200">BAND</text>
+    <text x="930" y="200">MODE</text>
+    <text x="1040" y="200">GRID</text>
+  </g>
+  <g font-family="Arial, sans-serif" font-size="15">
+    <rect x="438" y="216" width="738" height="44" fill="#fff"/>
+    <rect x="438" y="260" width="738" height="44" fill="#fafcfe"/>
+    <rect x="438" y="304" width="738" height="44" fill="#fff"/>
+    <rect x="438" y="348" width="738" height="44" fill="#fafcfe"/>
+    <text x="462" y="243">2026-01-03</text><text x="580" y="243">00:45</text><text x="690" y="243" font-weight="700">K1ABC</text><text x="820" y="243">40m</text><text x="930" y="243">CW</text><text x="1040" y="243">FN42</text>
+    <text x="462" y="287">2026-01-02</text><text x="580" y="287">15:30</text><text x="690" y="287" font-weight="700">W1AW</text><text x="820" y="287">20m</text><text x="930" y="287">SSB</text><text x="1040" y="287">FN31</text>
+  </g>
+
+  <rect x="462" y="560" width="660" height="88" rx="8" fill="#e8f3f1"/>
+  <text x="486" y="592" fill="#0b5f59" font-family="Arial, sans-serif" font-size="20" font-weight="700">Import ADIF</text>
+  <text x="486" y="622" fill="#335c67" font-family="Arial, sans-serif" font-size="15">Merge local .adi exports, skip duplicates, regenerate public data.</text>
+</svg>
