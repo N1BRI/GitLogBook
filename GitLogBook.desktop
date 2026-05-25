@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=GitLogBook
+Comment=Start the local GitLogBook logger
+Exec=sh -c "cd \"\\$(dirname \"\\$1\")\" && ./scripts/start-local.sh" launcher %k
+Terminal=true
+Categories=Utility;

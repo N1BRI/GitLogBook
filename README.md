@@ -65,6 +65,8 @@ Run the local app:
 npm run dev
 ```
 
+On Linux desktops, you can also double-click `GitLogBook.desktop` from the repo folder. If your file manager asks, choose to trust or allow launching the file.
+
 Local logger:
 
 ```text
