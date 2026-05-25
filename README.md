@@ -29,15 +29,15 @@ The local app is the only writer. The public site is read-only.
 
 ### Local Logger
 
-![Local logger UI](docs/screenshots/local-logger.svg)
+![Local logger UI](docs/screenshots/logger.png)
 
 ### Public Logbook
 
-![Public GitHub Pages logbook](docs/screenshots/public-logbook.svg)
+![Public GitHub Pages logbook](docs/screenshots/logbook.png)
 
 ### Blog Archive
 
-![Markdown blog archive](docs/screenshots/blog-archive.svg)
+![Markdown blog archive](docs/screenshots/blog_post.png)
 
 ## Repository Model
 
