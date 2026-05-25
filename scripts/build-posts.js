@@ -80,7 +80,7 @@ function renderPostPage(post, markdown) {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>${escapeHtml(post.title)} - N1BRI Logbook</title>
-    <link rel="stylesheet" href="/site/styles.css?v=8">
+    <link rel="stylesheet" href="/site/styles.css?v=9">
   </head>
   <body>
     <main class="post-shell">
@@ -105,7 +105,7 @@ function renderArchivePage() {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Posts - N1BRI Logbook</title>
-    <link rel="stylesheet" href="/site/styles.css?v=8">
+    <link rel="stylesheet" href="/site/styles.css?v=9">
   </head>
   <body>
     <main class="post-shell">

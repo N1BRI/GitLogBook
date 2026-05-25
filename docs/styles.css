@@ -172,22 +172,16 @@ select:focus {
 }
 
 .about-panel a {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 40px;
-  width: fit-content;
-  border-radius: 6px;
-  padding: 9px 12px;
-  background: var(--navy);
-  color: white;
+  color: var(--navy);
   font-size: 14px;
   font-weight: 800;
-  text-decoration: none;
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
 }
 
 .about-panel a:hover {
-  background: var(--accent);
+  color: var(--accent);
 }
 
 .recent-posts {
@@ -202,7 +196,9 @@ select:focus {
   color: var(--accent);
   font-size: 12px;
   font-weight: 850;
-  text-decoration: none;
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
 }
 
 .recent-post {
@@ -228,6 +224,13 @@ select:focus {
   color: var(--navy);
   font-size: 14px;
   line-height: 1.25;
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.recent-post:hover strong {
+  color: var(--accent);
 }
 
 .map-section {
@@ -690,7 +693,13 @@ td strong {
 
 .post-card a {
   color: var(--navy);
-  text-decoration: none;
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.post-card a:hover {
+  color: var(--accent);
 }
 
 .post-card span,
