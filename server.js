@@ -320,7 +320,6 @@ function mergeSettings(current, updates) {
     aboutTitle: cleanString(updates.aboutTitle),
     aboutBody: cleanString(updates.aboutBody),
     profileImageUrl: cleanString(updates.profileImageUrl),
-    qrzUrl: cleanString(updates.qrzUrl),
     myGrid: cleanString(updates.myGrid).toUpperCase(),
     git: {
       ...(current.git || {}),

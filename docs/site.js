@@ -23,7 +23,6 @@ const controls = {
   profileImage: document.querySelector("#profileImage"),
   aboutTitle: document.querySelector("#aboutTitle"),
   aboutBody: document.querySelector("#aboutBody"),
-  qrzLink: document.querySelector("#qrzLink"),
   recentPosts: document.querySelector("#recentPosts"),
   bandHourHeatmap: document.querySelector("#bandHourHeatmap")
 };
@@ -71,12 +70,6 @@ async function fetchConfig() {
       controls.profileImage.hidden = false;
     } else {
       controls.profileImage.hidden = true;
-    }
-    if (config.qrzUrl) {
-      controls.qrzLink.href = config.qrzUrl;
-      controls.qrzLink.hidden = false;
-    } else {
-      controls.qrzLink.hidden = true;
     }
   } catch {
     document.querySelector("#siteTitle").textContent = "Public Logbook";
