@@ -10,7 +10,7 @@
       "homebrew"
     ],
     "source": "",
-    "url": "/posts/sample-field-note.html",
+    "url": "./posts/sample-field-note.html",
     "searchText": "sample field note a sample markdown post showing how gitlogbook can publish station notes, activations, projects, and field reports. this is a sample gitlogbook post. replace it with your own station notes, activation reports, project logs, or field stories.\n\nposts live in `content/posts/` and are rebuilt into static pages with:\n\n```sh\nnpm run posts\n```\n\nthe public site shows recent posts in the about sidebar and provides a searchable post archive."
   }
 ]

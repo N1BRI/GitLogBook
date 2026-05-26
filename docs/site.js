@@ -41,7 +41,7 @@ async function init() {
 
 async function fetchRecentPosts() {
   try {
-    const posts = await fetch("/data/posts.json").then((response) => response.json());
+    const posts = await fetch("./data/posts.json").then((response) => response.json());
     controls.recentPosts.innerHTML = posts.slice(0, 3).map((post) => `
       <a class="recent-post" href="${escapeHtml(post.url)}">
         <span>${escapeHtml(formatDate(post.date))}</span>

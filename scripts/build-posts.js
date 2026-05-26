@@ -25,7 +25,7 @@ async function main() {
       summary: parsed.meta.summary || firstParagraph(parsed.body),
       tags: parseTags(parsed.meta.tags),
       source: parsed.meta.source || "",
-      url: `/posts/${slug}.html`,
+      url: `./posts/${slug}.html`,
       searchText: `${parsed.meta.title || ""} ${parsed.meta.summary || ""} ${parsed.body}`.toLowerCase()
     };
     posts.push(post);
@@ -80,11 +80,11 @@ function renderPostPage(post, markdown) {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>${escapeHtml(post.title)} - GitLogBook</title>
-    <link rel="stylesheet" href="/site/styles.css?v=9">
+    <link rel="stylesheet" href="../styles.css?v=9">
   </head>
   <body>
     <main class="post-shell">
-      <nav class="post-nav"><a href="/site/">Logbook</a><a href="/posts/">Posts</a></nav>
+      <nav class="post-nav"><a href="../">Logbook</a><a href="./">Posts</a></nav>
       <article class="post-article">
         <p class="post-date">${escapeHtml(formatDate(post.date))}</p>
         <h1>${escapeHtml(post.title)}</h1>
@@ -105,18 +105,18 @@ function renderArchivePage() {
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Posts - GitLogBook</title>
-    <link rel="stylesheet" href="/site/styles.css?v=9">
+    <link rel="stylesheet" href="../styles.css?v=9">
   </head>
   <body>
     <main class="post-shell">
-      <nav class="post-nav"><a href="/site/">Logbook</a><a href="/posts/">Posts</a></nav>
+      <nav class="post-nav"><a href="../">Logbook</a><a href="./">Posts</a></nav>
       <section class="archive">
         <h1>Posts</h1>
         <input id="postSearch" type="search" placeholder="Search posts">
         <div id="postArchiveList" class="post-list"></div>
       </section>
     </main>
-    <script src="/posts/posts.js?v=8"></script>
+    <script src="./posts.js?v=8"></script>
   </body>
 </html>
 `;
@@ -131,7 +131,7 @@ function renderBlock(block) {
   const trimmed = block.trim();
   const image = trimmed.match(/^!\[([^\]]*)\]\(([^)]+)\)$/);
   if (image) {
-    return `<figure><img src="${escapeHtml(image[2])}" alt="${escapeHtml(image[1])}"><figcaption>${escapeHtml(image[1])}</figcaption></figure>`;
+    return `<figure><img src="${escapeHtml(toRelativeAssetPath(image[2]))}" alt="${escapeHtml(image[1])}"><figcaption>${escapeHtml(image[1])}</figcaption></figure>`;
   }
   if (trimmed.startsWith("- ")) {
     const items = trimmed.split("\n").map((line) => `<li>${inlineMarkdown(escapeHtml(line.replace(/^- /, "")))}</li>`).join("");
@@ -142,6 +142,10 @@ function renderBlock(block) {
 
 function inlineMarkdown(html) {
   return html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+}
+
+function toRelativeAssetPath(value) {
+  return String(value || "").replace(/^\/assets\//, "../assets/");
 }
 
 function formatDate(value) {

@@ -5,7 +5,7 @@ let posts = [];
 init();
 
 async function init() {
-  posts = await fetch("/data/posts.json").then((response) => response.json());
+  posts = await fetch("../data/posts.json").then((response) => response.json());
   search.addEventListener("input", render);
   render();
 }
@@ -21,7 +21,7 @@ function render() {
 function renderPost(post) {
   return `<article class="post-card">
     <p>${escapeHtml(formatDate(post.date))}</p>
-    <h2><a href="${escapeHtml(post.url)}">${escapeHtml(post.title)}</a></h2>
+    <h2><a href="./${escapeHtml(post.slug)}.html">${escapeHtml(post.title)}</a></h2>
     <span>${escapeHtml(post.tags.join(" / "))}</span>
     <p>${escapeHtml(post.summary)}</p>
   </article>`;
