@@ -2,3 +2,4 @@ node_modules/
 .DS_Store
 data/callsign-cache.json
 data/*.adi
+data/app-settings.local.json

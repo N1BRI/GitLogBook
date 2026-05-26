@@ -10,10 +10,9 @@ const { latLonToGrid } = require("./lib/maidenhead");
 
 const ROOT = __dirname;
 const DATA_DIR = path.join(ROOT, "data");
-const DOCS_DIR = path.join(ROOT, "docs");
 const APP_DIR = path.join(ROOT, "app");
-const LOG_PATH = path.join(DATA_DIR, "logbook.adi");
-const SETTINGS_PATH = path.join(DATA_DIR, "settings.json");
+const APP_SETTINGS_PATH = path.join(DATA_DIR, "settings.json");
+const APP_LOCAL_SETTINGS_PATH = path.join(DATA_DIR, "app-settings.local.json");
 const CACHE_PATH = path.join(DATA_DIR, "callsign-cache.json");
 const PORT = Number(process.env.PORT || 5173);
 const HOST = process.env.HOST || "127.0.0.1";
@@ -46,7 +45,7 @@ const server = http.createServer(async (req, res) => {
 
     if (url.pathname.startsWith("/site/")) {
       const pathname = url.pathname === "/site" ? "/index.html" : url.pathname.replace(/^\/site/, "");
-      await serveStatic(res, DOCS_DIR, pathname);
+      await serveStatic(res, docsDir(await getLogbookRoot()), pathname);
       return;
     }
 
@@ -57,7 +56,7 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (url.pathname.startsWith("/posts/") || url.pathname.startsWith("/assets/") || url.pathname.startsWith("/data/")) {
-      await serveStatic(res, DOCS_DIR, url.pathname);
+      await serveStatic(res, docsDir(await getLogbookRoot()), url.pathname);
       return;
     }
 
@@ -130,7 +129,7 @@ async function handleApi(req, res, url) {
 
   if (method === "POST" && url.pathname === "/api/import") {
     const body = await readBody(req);
-    const result = await importAdifFile({ importPath: cleanString(body.path), root: ROOT });
+    const result = await importAdifFile({ importPath: cleanString(body.path), root: await getLogbookRoot() });
     sendJson(res, 200, result);
     return;
   }
@@ -154,7 +153,7 @@ async function handleApi(req, res, url) {
 
   if (method === "PUT" && url.pathname === "/api/settings") {
     const settings = mergeSettings(await readSettings(), await readBody(req));
-    await fs.writeFile(SETTINGS_PATH, JSON.stringify(settings, null, 2), "utf8");
+    await saveSettings(settings);
     await exportPublic();
     sendJson(res, 200, settings);
     return;
@@ -170,20 +169,21 @@ async function handleApi(req, res, url) {
 
 async function readQsos() {
   await ensureDataFiles();
-  return parseAdif(await fs.readFile(LOG_PATH, "utf8"));
+  return parseAdif(await fs.readFile(logPath(await getLogbookRoot()), "utf8"));
 }
 
 async function saveQsos(qsos) {
-  await fs.writeFile(LOG_PATH, writeAdif(qsos), "utf8");
+  await fs.writeFile(logPath(await getLogbookRoot()), writeAdif(qsos), "utf8");
   await exportPublic();
 }
 
 async function exportPublic() {
-  await fs.mkdir(path.join(DOCS_DIR, "data"), { recursive: true });
+  const root = await getLogbookRoot();
+  await fs.mkdir(path.join(docsDir(root), "data"), { recursive: true });
   const result = buildPublicExport(await readQsos(), await readSettings());
-  await fs.writeFile(path.join(DOCS_DIR, "data", "log.json"), JSON.stringify(result.log, null, 2), "utf8");
-  await fs.writeFile(path.join(DOCS_DIR, "data", "stats.json"), JSON.stringify(result.stats, null, 2), "utf8");
-  await fs.writeFile(path.join(DOCS_DIR, "data", "site-config.json"), JSON.stringify(result.config, null, 2), "utf8");
+  await fs.writeFile(path.join(docsDir(root), "data", "log.json"), JSON.stringify(result.log, null, 2), "utf8");
+  await fs.writeFile(path.join(docsDir(root), "data", "stats.json"), JSON.stringify(result.stats, null, 2), "utf8");
+  await fs.writeFile(path.join(docsDir(root), "data", "site-config.json"), JSON.stringify(result.config, null, 2), "utf8");
   return result;
 }
 
@@ -193,51 +193,55 @@ async function ensureExport() {
 }
 
 async function ensureDataFiles() {
-  await fs.mkdir(DATA_DIR, { recursive: true });
-  await fs.mkdir(path.join(DOCS_DIR, "data"), { recursive: true });
+  const root = await getLogbookRoot();
+  await fs.mkdir(dataDir(root), { recursive: true });
+  await fs.mkdir(path.join(docsDir(root), "data"), { recursive: true });
   try {
-    await fs.access(LOG_PATH);
+    await fs.access(logPath(root));
   } catch {
-    await fs.writeFile(LOG_PATH, "GitLogBook ADIF export\n<ADIF_VER:5>3.1.4\n<PROGRAMID:10>GitLogBook\n<EOH>\n", "utf8");
+    await fs.writeFile(logPath(root), "GitLogBook ADIF export\n<ADIF_VER:5>3.1.4\n<PROGRAMID:10>GitLogBook\n<EOH>\n", "utf8");
   }
 }
 
 async function publish() {
   const settings = await readSettings();
-  const files = ["docs"];
+  const root = await getLogbookRoot();
+  const files = ["docs", "content", "data/settings.json"];
   const status = await gitStatus();
   if (!status.isRepo) return { ok: false, error: "This folder is not a usable Git repository yet.", status };
 
-  const add = await runGit(["add", ...files]);
+  const add = await runGit(["add", ...files], root);
   if (!add.ok) return { ok: false, error: add.error || add.stderr, step: "add" };
 
   const message = settings.git?.commitTemplate || "Publish log update";
-  const commit = await runGit(["commit", "-m", message]);
+  const commit = await runGit(["commit", "-m", message], root);
   if (!commit.ok && !/nothing to commit/i.test(commit.stdout + commit.stderr)) {
     return { ok: false, error: commit.error || commit.stderr, step: "commit" };
   }
 
-  const push = await runGit(["push", settings.git?.remote || "origin", settings.git?.branch || "main"]);
+  const push = await runGit(["push", settings.git?.remote || "origin", settings.git?.branch || "main"], root);
   if (!push.ok) return { ok: false, error: push.error || push.stderr, step: "push" };
 
   return { ok: true, commit: commit.stdout.trim(), push: push.stdout.trim() || push.stderr.trim() };
 }
 
 async function gitStatus() {
-  const rev = await runGit(["rev-parse", "--is-inside-work-tree"]);
+  const root = await getLogbookRoot();
+  const rev = await runGit(["rev-parse", "--is-inside-work-tree"], root);
   if (!rev.ok) return { isRepo: false, message: rev.stderr.trim() || rev.error };
-  const status = await runGit(["status", "--short"]);
-  const branch = await runGit(["branch", "--show-current"]);
+  const status = await runGit(["status", "--short"], root);
+  const branch = await runGit(["branch", "--show-current"], root);
   return {
     isRepo: true,
+    root,
     branch: branch.stdout.trim(),
     changes: status.stdout.split("\n").filter(Boolean)
   };
 }
 
-function runGit(args) {
+function runGit(args, cwd = ROOT) {
   return new Promise((resolve) => {
-    const child = spawn("git", args, { cwd: ROOT });
+    const child = spawn("git", args, { cwd });
     let stdout = "";
     let stderr = "";
     child.stdout.on("data", (chunk) => {
@@ -308,12 +312,39 @@ function getJson(url) {
 }
 
 async function readSettings() {
-  return readJson(SETTINGS_PATH, {});
+  const appSettings = await readAppSettings();
+  const stationSettings = await readJson(settingsPath(await getLogbookRoot()), {});
+  return {
+    ...stationSettings,
+    deploymentRepoPath: appSettings.deploymentRepoPath || "",
+    activeRepoPath: await getLogbookRoot()
+  };
+}
+
+async function saveSettings(settings) {
+  const appSettings = await readAppSettings();
+  const deploymentRepoPath = cleanString(settings.deploymentRepoPath || appSettings.deploymentRepoPath);
+  await fs.mkdir(DATA_DIR, { recursive: true });
+  await fs.writeFile(APP_LOCAL_SETTINGS_PATH, JSON.stringify({ deploymentRepoPath }, null, 2), "utf8");
+
+  const publicSettings = { ...settings };
+  delete publicSettings.deploymentRepoPath;
+  delete publicSettings.activeRepoPath;
+  await fs.writeFile(settingsPath(await getLogbookRoot()), JSON.stringify(publicSettings, null, 2), "utf8");
+}
+
+async function readAppSettings() {
+  return {
+    ...(await readJson(APP_SETTINGS_PATH, {})),
+    ...(await readJson(APP_LOCAL_SETTINGS_PATH, {}))
+  };
 }
 
 function mergeSettings(current, updates) {
+  const deploymentRepoPath = cleanString(updates.deploymentRepoPath) || current.deploymentRepoPath || "";
   return {
     ...current,
+    deploymentRepoPath,
     stationCallsign: cleanString(updates.stationCallsign).toUpperCase(),
     publicTitle: cleanString(updates.publicTitle),
     publicSubtitle: cleanString(updates.publicSubtitle),
@@ -328,6 +359,28 @@ function mergeSettings(current, updates) {
       commitTemplate: cleanString(updates.gitCommitTemplate) || current.git?.commitTemplate || "Publish log update"
     }
   };
+}
+
+async function getLogbookRoot() {
+  const settings = await readAppSettings();
+  const configured = cleanString(process.env.GITLOGBOOK_REPO || settings.deploymentRepoPath);
+  return configured ? path.resolve(ROOT, configured) : ROOT;
+}
+
+function dataDir(root) {
+  return path.join(root, "data");
+}
+
+function docsDir(root) {
+  return path.join(root, "docs");
+}
+
+function logPath(root) {
+  return path.join(dataDir(root), "logbook.adi");
+}
+
+function settingsPath(root) {
+  return path.join(dataDir(root), "settings.json");
 }
 
 function cleanString(value) {

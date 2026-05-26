@@ -121,7 +121,7 @@ async function lookupCallsign() {
 
 async function exportPublic() {
   const stats = await api("/api/export", { method: "POST", body: {} });
-  setStatus(`Exported ${stats.total} QSOs to docs/data. ${stats.mapped} are mapped.`);
+  setStatus(`Exported ${stats.total} QSOs to the active repo docs/data. ${stats.mapped} are mapped.`);
 }
 
 async function publish() {
@@ -250,6 +250,7 @@ function setImportStatus(message, tone = "") {
 function fillSettingsForm(settings) {
   const values = {
     ...settings,
+    deploymentRepoPath: settings.deploymentRepoPath || settings.activeRepoPath || "",
     gitRemote: settings.git?.remote || "origin",
     gitBranch: settings.git?.branch || "main",
     gitCommitTemplate: settings.git?.commitTemplate || "Publish log update"

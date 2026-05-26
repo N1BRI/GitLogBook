@@ -101,6 +101,22 @@ Edit settings in the local app under **Site Settings**, or edit:
 data/settings.json
 ```
 
+To run the software repo against a separate personal deployment repo, create:
+
+```text
+data/app-settings.local.json
+```
+
+with:
+
+```json
+{
+  "deploymentRepoPath": "/path/to/YOURCALL-Logbook"
+}
+```
+
+That local file is ignored by Git. The app will read/write ADIF, settings, generated `docs/`, and Git publish operations in the deployment repo.
+
 Useful fields:
 
 ```json
