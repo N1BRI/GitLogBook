@@ -25,6 +25,7 @@ body {
 
 button,
 input,
+select,
 textarea {
   font: inherit;
 }
@@ -152,6 +153,7 @@ label {
 }
 
 input,
+select,
 textarea {
   width: 100%;
   border: 1px solid var(--line);
@@ -163,6 +165,7 @@ textarea {
 }
 
 input:focus,
+select:focus,
 textarea:focus {
   border-color: var(--accent);
   outline: 3px solid rgba(15, 118, 110, 0.16);
@@ -235,6 +238,56 @@ td:last-child {
 
 .status[data-tone="warn"] {
   color: var(--warn);
+}
+
+.modal {
+  width: min(520px, calc(100vw - 28px));
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0;
+  color: var(--ink);
+  box-shadow: 0 24px 70px rgba(16, 37, 34, 0.26);
+}
+
+.modal::backdrop {
+  background: rgba(16, 37, 34, 0.42);
+}
+
+.modal form {
+  padding: 18px;
+}
+
+.modal-head,
+.modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.modal-head {
+  padding-bottom: 12px;
+}
+
+.modal p {
+  color: #34413d;
+  line-height: 1.5;
+}
+
+.modal pre {
+  max-height: 220px;
+  overflow: auto;
+  margin: 12px 0 0;
+  padding: 12px;
+  border-radius: 6px;
+  background: #edf3f1;
+  color: #263330;
+  white-space: pre-wrap;
+}
+
+.modal-actions {
+  justify-content: flex-end;
+  padding-top: 16px;
 }
 
 @media (max-width: 900px) {

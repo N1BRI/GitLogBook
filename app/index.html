@@ -190,6 +190,21 @@
       </section>
     </main>
 
-    <script src="/app.js?v=5"></script>
+    <dialog id="appDialog" class="modal">
+      <form method="dialog">
+        <div class="modal-head">
+          <h2 id="dialogTitle">GitLogBook</h2>
+          <button id="dialogCloseButton" type="submit" value="cancel" class="ghost" aria-label="Close">Close</button>
+        </div>
+        <p id="dialogMessage"></p>
+        <pre id="dialogDetails" hidden></pre>
+        <div class="modal-actions">
+          <button id="dialogCancelButton" type="submit" value="cancel" class="secondary">Cancel</button>
+          <button id="dialogConfirmButton" type="submit" value="confirm">OK</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script src="/app.js?v=6"></script>
   </body>
 </html>

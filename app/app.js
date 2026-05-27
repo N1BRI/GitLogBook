@@ -12,6 +12,13 @@ const resetButton = document.querySelector("#resetButton");
 const lookupButton = document.querySelector("#lookupButton");
 const exportButton = document.querySelector("#exportButton");
 const publishButton = document.querySelector("#publishButton");
+const dialog = document.querySelector("#appDialog");
+const dialogTitle = document.querySelector("#dialogTitle");
+const dialogMessage = document.querySelector("#dialogMessage");
+const dialogDetails = document.querySelector("#dialogDetails");
+const dialogCancelButton = document.querySelector("#dialogCancelButton");
+const dialogConfirmButton = document.querySelector("#dialogConfirmButton");
+const dialogCloseButton = document.querySelector("#dialogCloseButton");
 
 let qsos = [];
 
@@ -130,12 +137,35 @@ async function exportPublic() {
 
 async function publish() {
   setStatus("Publishing...");
-  const result = await api("/api/publish", { method: "POST", body: {} }, true);
-  if (!result.ok) {
-    setStatus(result.error || "Publish failed.", "error");
+  let result;
+  try {
+    result = await api("/api/publish", { method: "POST", body: {} }, true);
+  } catch (error) {
+    setStatus(error.message || "Publish failed.", "error");
+    await showMessageDialog({
+      title: "Publish Failed",
+      message: error.message || "The publish request could not be completed."
+    });
     return;
   }
-  setStatus("Published to GitHub remote.");
+  if (!result.ok) {
+    setStatus(result.error || "Publish failed.", "error");
+    await showMessageDialog({
+      title: "Publish Failed",
+      message: result.error || "GitLogBook could not publish this update.",
+      details: result.step ? `Failed step: ${result.step}` : ""
+    });
+    return;
+  }
+  const message = result.noChanges
+    ? "No public changes needed to be committed. Remote is up to date."
+    : "Published to GitHub remote.";
+  setStatus(message);
+  await showMessageDialog({
+    title: "Publish Complete",
+    message,
+    details: formatPublishDetails(result)
+  });
 }
 
 function renderRows() {
@@ -187,7 +217,10 @@ async function handleRowAction(event) {
     fillForm(qso);
     return;
   }
-  if (button.dataset.action === "delete" && confirm(`Delete QSO with ${qso.call}?`)) {
+  if (button.dataset.action === "delete" && await showConfirmDialog({
+    title: "Delete QSO",
+    message: `Delete QSO with ${qso.call}? This removes it from the local ADIF and regenerates the public export.`
+  })) {
     await api(`/api/qsos/${encodeURIComponent(qso.id)}`, { method: "DELETE" });
     await loadQsos();
     setStatus("QSO deleted.");
@@ -263,6 +296,48 @@ function fillSettingsForm(settings) {
   for (const [key, value] of Object.entries(values)) {
     if (settingsForm.elements[key]) settingsForm.elements[key].value = value || "";
   }
+}
+
+function showMessageDialog({ title, message, details = "" }) {
+  return openDialog({ title, message, details, confirmLabel: "OK", showCancel: false });
+}
+
+function showConfirmDialog({ title, message, details = "" }) {
+  return openDialog({ title, message, details, confirmLabel: "Delete", cancelLabel: "Cancel", showCancel: true });
+}
+
+function openDialog({ title, message, details = "", confirmLabel = "OK", cancelLabel = "Cancel", showCancel = false }) {
+  dialogTitle.textContent = title;
+  dialogMessage.textContent = message;
+  dialogDetails.textContent = details;
+  dialogDetails.hidden = !details;
+  dialogConfirmButton.textContent = confirmLabel;
+  dialogCancelButton.textContent = cancelLabel;
+  dialogCancelButton.hidden = !showCancel;
+  dialogCloseButton.hidden = showCancel;
+  dialog.returnValue = "cancel";
+
+  return new Promise((resolve) => {
+    const onClose = () => {
+      dialog.removeEventListener("close", onClose);
+      resolve(dialog.returnValue === "confirm");
+    };
+    dialog.addEventListener("close", onClose);
+    if (typeof dialog.showModal === "function") {
+      dialog.showModal();
+    } else {
+      resolve(window.confirm(message));
+    }
+  });
+}
+
+function formatPublishDetails(result) {
+  return [
+    result.remote ? `Remote: ${result.remote}` : "",
+    result.branch ? `Branch: ${result.branch}` : "",
+    result.commit ? `Commit: ${result.commit}` : "",
+    result.push ? `Push: ${result.push}` : ""
+  ].filter(Boolean).join("\n");
 }
 
 async function api(url, options = {}, allowFailure = false) {

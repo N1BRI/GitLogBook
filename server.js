@@ -222,14 +222,24 @@ async function publish() {
 
   const message = settings.git?.commitTemplate || "Publish log update";
   const commit = await runGit(["commit", "-m", message], root);
+  const noChanges = !commit.ok && /nothing to commit/i.test(commit.stdout + commit.stderr);
   if (!commit.ok && !/nothing to commit/i.test(commit.stdout + commit.stderr)) {
     return { ok: false, error: commit.error || commit.stderr, step: "commit" };
   }
 
-  const push = await runGit(["push", settings.git?.remote || "origin", settings.git?.branch || "main"], root);
+  const remote = settings.git?.remote || "origin";
+  const branch = settings.git?.branch || "main";
+  const push = await runGit(["push", remote, branch], root);
   if (!push.ok) return { ok: false, error: push.error || push.stderr, step: "push" };
 
-  return { ok: true, commit: commit.stdout.trim(), push: push.stdout.trim() || push.stderr.trim() };
+  return {
+    ok: true,
+    noChanges,
+    remote,
+    branch,
+    commit: commit.stdout.trim() || commit.stderr.trim(),
+    push: push.stdout.trim() || push.stderr.trim()
+  };
 }
 
 async function gitStatus() {
