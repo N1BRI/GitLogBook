@@ -81,10 +81,14 @@ async function saveQso(event) {
   const payload = getFormData();
   const editing = Boolean(payload.id);
   const url = editing ? `/api/qsos/${encodeURIComponent(payload.id)}` : "/api/qsos";
-  await api(url, { method: editing ? "PUT" : "POST", body: payload });
-  await loadQsos();
-  resetForm();
-  setStatus(editing ? "QSO updated." : "QSO saved.");
+  try {
+    await api(url, { method: editing ? "PUT" : "POST", body: payload });
+    await loadQsos();
+    resetForm();
+    setStatus(editing ? "QSO updated." : "QSO saved.");
+  } catch (error) {
+    setStatus(error.message || "QSO could not be saved.", "error");
+  }
 }
 
 async function lookupCallsign() {
@@ -206,6 +210,7 @@ function fillForm(qso) {
 function resetForm() {
   form.reset();
   form.elements.id.value = "";
+  form.elements.mode.value = "CW";
   formTitle.textContent = "New QSO";
   setDefaultDateTime();
 }

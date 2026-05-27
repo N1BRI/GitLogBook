@@ -82,8 +82,9 @@ async function handleApi(req, res, url) {
 
   if (method === "POST" && url.pathname === "/api/qsos") {
     const payload = normalizeQso(await readBody(req));
-    if (!payload.call || !payload.qsoDate || !payload.timeOn) {
-      sendJson(res, 400, { error: "Callsign, date, and time are required." });
+    const validationError = validateQso(payload);
+    if (validationError) {
+      sendJson(res, 400, { error: validationError });
       return;
     }
     const qsos = await readQsos();
@@ -102,7 +103,13 @@ async function handleApi(req, res, url) {
       sendJson(res, 404, { error: "QSO not found." });
       return;
     }
-    qsos[index] = normalizeQso({ ...qsos[index], ...(await readBody(req)), id });
+    const payload = normalizeQso({ ...qsos[index], ...(await readBody(req)), id });
+    const validationError = validateQso(payload);
+    if (validationError) {
+      sendJson(res, 400, { error: validationError });
+      return;
+    }
+    qsos[index] = payload;
     await saveQsos(qsos);
     sendJson(res, 200, qsos[index]);
     return;
@@ -359,6 +366,23 @@ function mergeSettings(current, updates) {
       commitTemplate: cleanString(updates.gitCommitTemplate) || current.git?.commitTemplate || "Publish log update"
     }
   };
+}
+
+function validateQso(qso) {
+  const required = [
+    ["call", "Callsign"],
+    ["qsoDate", "Date"],
+    ["timeOn", "Time"],
+    ["band", "Band"],
+    ["freq", "Frequency"],
+    ["mode", "Mode"],
+    ["rstSent", "RST sent"],
+    ["rstRcvd", "RST received"]
+  ];
+  const missing = required
+    .filter(([key]) => !cleanString(qso[key]))
+    .map(([, label]) => label);
+  return missing.length ? `${missing.join(", ")} ${missing.length === 1 ? "is" : "are"} required.` : "";
 }
 
 async function getLogbookRoot() {
