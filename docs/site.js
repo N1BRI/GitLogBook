@@ -31,7 +31,7 @@ init();
 
 async function init() {
   await fetchConfig();
-  state.records = await fetch("./data/log.json").then((response) => response.json());
+  state.records = await fetchJson("./data/log.json");
   await fetchRecentPosts();
   await fetchStats();
   setupFilters();
@@ -41,7 +41,7 @@ async function init() {
 
 async function fetchRecentPosts() {
   try {
-    const posts = await fetch("./data/posts.json").then((response) => response.json());
+    const posts = await fetchJson("./data/posts.json");
     controls.recentPosts.innerHTML = posts.slice(0, 3).map((post) => `
       <a class="recent-post" href="${escapeHtml(post.url)}">
         <span>${escapeHtml(formatDate(post.date))}</span>
@@ -55,7 +55,7 @@ async function fetchRecentPosts() {
 
 async function fetchConfig() {
   try {
-    const config = await fetch("./data/site-config.json").then((response) => response.json());
+    const config = await fetchJson("./data/site-config.json");
     const title = config.title || "Public Logbook";
     const subtitle = config.subtitle || "Read-only amateur radio contact log";
     state.config = config;
@@ -77,10 +77,15 @@ async function fetchConfig() {
 }
 
 async function fetchStats() {
-  const stats = await fetch("./data/stats.json").then((response) => response.json());
+  const stats = await fetchJson("./data/stats.json");
   document.querySelector("#totalStat").textContent = stats.total || 0;
   document.querySelector("#mappedStat").textContent = stats.mapped || 0;
   document.querySelector("#unmappedStat").textContent = stats.unmapped || 0;
+}
+
+function fetchJson(url) {
+  const separator = url.includes("?") ? "&" : "?";
+  return fetch(`${url}${separator}v=${Date.now()}`, { cache: "no-store" }).then((response) => response.json());
 }
 
 function setupFilters() {

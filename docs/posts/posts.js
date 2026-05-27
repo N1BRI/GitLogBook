@@ -5,9 +5,14 @@ let posts = [];
 init();
 
 async function init() {
-  posts = await fetch("../data/posts.json").then((response) => response.json());
+  posts = await fetchJson("../data/posts.json");
   search.addEventListener("input", render);
   render();
+}
+
+function fetchJson(url) {
+  const separator = url.includes("?") ? "&" : "?";
+  return fetch(`${url}${separator}v=${Date.now()}`, { cache: "no-store" }).then((response) => response.json());
 }
 
 function render() {
