@@ -12,6 +12,20 @@ const resetButton = document.querySelector("#resetButton");
 const lookupButton = document.querySelector("#lookupButton");
 const exportButton = document.querySelector("#exportButton");
 const publishButton = document.querySelector("#publishButton");
+const rbnToggle = document.querySelector("#rbnToggle");
+const rbnPanelToggle = document.querySelector("#rbnPanelToggle");
+const rbnStatus = document.querySelector("#rbnStatus");
+const rbnConnectionStatus = document.querySelector("#rbnConnectionStatus");
+const rbnFilterForm = document.querySelector("#rbnFilterForm");
+const rbnFilters = document.querySelector("#rbnFilters");
+const rbnRows = document.querySelector("#rbnRows");
+const rbnSpotSummary = document.querySelector("#rbnSpotSummary");
+const rbnMapEmpty = document.querySelector("#rbnMapEmpty");
+const rbnLegend = document.querySelector("#rbnLegend");
+const rbnBeaconPanel = document.querySelector("#rbnBeaconPanel");
+const rbnBeaconRows = document.querySelector("#rbnBeaconRows");
+const rbnBeaconCount = document.querySelector("#rbnBeaconCount");
+const beaconListToggle = document.querySelector("#beaconListToggle");
 const dialog = document.querySelector("#appDialog");
 const dialogTitle = document.querySelector("#dialogTitle");
 const dialogMessage = document.querySelector("#dialogMessage");
@@ -21,6 +35,25 @@ const dialogConfirmButton = document.querySelector("#dialogConfirmButton");
 const dialogCloseButton = document.querySelector("#dialogCloseButton");
 
 let qsos = [];
+let rbnState = null;
+let rbnPollTimer = null;
+let rbnMap = null;
+let rbnMapLayers = null;
+
+const BAND_COLORS = {
+  "160m": "#7c3aed",
+  "80m": "#2563eb",
+  "60m": "#0891b2",
+  "40m": "#0f766e",
+  "30m": "#65a30d",
+  "20m": "#ca8a04",
+  "17m": "#ea580c",
+  "15m": "#dc2626",
+  "12m": "#db2777",
+  "10m": "#9333ea",
+  "6m": "#475569",
+  "2m": "#111827"
+};
 
 init();
 
@@ -28,7 +61,9 @@ async function init() {
   setDefaultDateTime();
   await loadSettings();
   await loadQsos();
+  await loadRbn();
   bindEvents();
+  renderIcons();
 }
 
 function bindEvents() {
@@ -41,6 +76,11 @@ function bindEvents() {
   publishButton.addEventListener("click", publish);
   settingsForm.addEventListener("submit", saveSettings);
   importForm.addEventListener("submit", importAdif);
+  rbnToggle.addEventListener("click", toggleRbn);
+  rbnPanelToggle.addEventListener("click", toggleRbn);
+  rbnFilterForm.addEventListener("submit", addRbnFilter);
+  rbnFilters.addEventListener("click", removeRbnFilter);
+  beaconListToggle.addEventListener("click", toggleBeaconList);
 }
 
 async function loadQsos() {
@@ -51,6 +91,59 @@ async function loadQsos() {
 async function loadSettings() {
   const settings = await api("/api/settings");
   fillSettingsForm(settings);
+}
+
+async function loadRbn() {
+  rbnState = await api("/api/rbn");
+  renderRbn();
+  scheduleRbnPoll();
+}
+
+async function toggleRbn() {
+  rbnToggle.disabled = true;
+  rbnPanelToggle.disabled = true;
+  try {
+    rbnState = await api("/api/rbn", { method: "PUT", body: { active: !rbnState?.active } });
+    renderRbn();
+    scheduleRbnPoll();
+  } finally {
+    rbnToggle.disabled = false;
+    rbnPanelToggle.disabled = false;
+  }
+}
+
+async function addRbnFilter(event) {
+  event.preventDefault();
+  const input = rbnFilterForm.elements.callsign;
+  if (!input.value.trim()) return;
+  rbnState = await api("/api/rbn/filters", { method: "POST", body: { callsign: input.value } });
+  input.value = "";
+  renderRbn();
+}
+
+async function removeRbnFilter(event) {
+  const button = event.target.closest("button[data-callsign]");
+  if (!button) return;
+  rbnState = await api(`/api/rbn/filters/${encodeURIComponent(button.dataset.callsign)}`, { method: "DELETE" });
+  renderRbn();
+}
+
+function toggleBeaconList() {
+  rbnBeaconPanel.hidden = !rbnBeaconPanel.hidden;
+  beaconListToggle.setAttribute("aria-pressed", String(!rbnBeaconPanel.hidden));
+  if (rbnMap) setTimeout(() => rbnMap.invalidateSize(), 0);
+}
+
+function scheduleRbnPoll() {
+  clearTimeout(rbnPollTimer);
+  if (!rbnState?.active) return;
+  rbnPollTimer = setTimeout(async () => {
+    try {
+      await loadRbn();
+    } catch {
+      scheduleRbnPoll();
+    }
+  }, 20000);
 }
 
 async function saveSettings(event) {
@@ -166,6 +259,184 @@ async function publish() {
     message,
     details: formatPublishDetails(result)
   });
+}
+
+function renderRbn() {
+  const state = rbnState || { active: false, filters: [], spots: [], beacons: [], connections: [] };
+  const connected = state.connections.filter((connection) => connection.status === "connected").length;
+  rbnToggle.setAttribute("aria-pressed", String(state.active));
+  rbnToggle.title = state.active ? "Disconnect from Reverse Beacon Network" : "Connect to Reverse Beacon Network";
+  rbnPanelToggle.querySelector("span").textContent = state.active ? "Disconnect RBN" : "Connect RBN";
+  rbnStatus.textContent = state.active ? connected ? "Connected" : "Connecting" : "Disconnected";
+  rbnStatus.dataset.active = String(state.active);
+  rbnConnectionStatus.textContent = state.active
+    ? `${connected} of ${state.connections.length} streams connected. ${state.filters.length ? "Showing watched-call history." : "Showing the latest 250 unfiltered spots."}`
+    : "Connect to begin receiving CW, RTTY, and FT8 spots.";
+  renderRbnFilters(state.filters);
+  renderRbnRows(state.spots);
+  renderRbnBeacons(state.beacons);
+  renderRbnMap(state);
+  renderIcons();
+}
+
+function renderRbnFilters(filters) {
+  if (!filters.length) {
+    rbnFilters.innerHTML = `<span class="rbn-filter-empty">No filters. Showing all incoming spots.</span>`;
+    return;
+  }
+  rbnFilters.innerHTML = filters.map((callsign) => `
+    <span class="rbn-filter">
+      ${escapeHtml(callsign)}
+      <button type="button" data-callsign="${escapeHtml(callsign)}" title="Remove ${escapeHtml(callsign)} filter" aria-label="Remove ${escapeHtml(callsign)} filter">
+        <i data-lucide="x"></i>
+      </button>
+    </span>
+  `).join("");
+}
+
+function renderRbnRows(spots) {
+  rbnSpotSummary.textContent = `${spots.length} ${spots.length === 1 ? "spot" : "spots"}`;
+  if (!spots.length) {
+    rbnRows.innerHTML = `<tr><td colspan="8" class="empty">No RBN spots received for this view yet.</td></tr>`;
+    return;
+  }
+  rbnRows.innerHTML = spots.map((spot) => `
+    <tr>
+      <td>${escapeHtml(spot.time || "")}</td>
+      <td><strong>${escapeHtml(spot.call || "")}</strong></td>
+      <td>${escapeHtml(spot.beacon || "")}</td>
+      <td>${escapeHtml(spot.frequencyMhz || "")}</td>
+      <td>${escapeHtml(spot.band || "")}</td>
+      <td><span class="mode-cell"><i data-lucide="${modeIcon(spot.mode)}"></i>${escapeHtml(spot.mode || "")}</span></td>
+      <td>${spot.snr === "" ? "" : `${escapeHtml(spot.snr)} dB`}</td>
+      <td>${spot.speed === "" ? "" : `${escapeHtml(spot.speed)} WPM`}</td>
+    </tr>
+  `).join("");
+}
+
+function renderRbnBeacons(beacons) {
+  rbnBeaconCount.textContent = beacons.length;
+  rbnBeaconRows.innerHTML = beacons.length
+    ? beacons.map((beacon) => `
+      <div class="rbn-beacon-row">
+        <strong>${escapeHtml(beacon.beacon)}</strong>
+        <span>${escapeHtml(beacon.grid || "Grid unavailable")} · ${beacon.count}</span>
+      </div>
+    `).join("")
+    : `<p class="empty">No reporting beacons yet.</p>`;
+}
+
+function renderRbnMap(state) {
+  if (!window.L) {
+    rbnMapEmpty.textContent = "Map library unavailable.";
+    rbnMapEmpty.hidden = false;
+    return;
+  }
+  if (!rbnMap) {
+    rbnMap = L.map("rbnMap", { worldCopyJump: true, zoomControl: true }).setView([25, 0], 2);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 8,
+      attribution: "&copy; OpenStreetMap contributors"
+    }).addTo(rbnMap);
+    rbnMapLayers = L.layerGroup().addTo(rbnMap);
+  }
+  rbnMapLayers.clearLayers();
+  const bounds = [];
+  const home = state.home;
+  if (home) {
+    L.circleMarker([home.lat, home.lon], {
+      radius: 6,
+      color: "#102522",
+      fillColor: "#ffffff",
+      fillOpacity: 1,
+      weight: 3
+    }).bindTooltip(`${state.stationCallsign || "Home"} · ${home.grid}`).addTo(rbnMapLayers);
+    bounds.push([home.lat, home.lon]);
+  }
+
+  const paths = new Map();
+  const beacons = new Map();
+  state.spots.forEach((spot) => {
+    if (!hasCoordinates(spot)) return;
+    beacons.set(spot.beacon, spot);
+    const origin = signalOrigin(spot, state);
+    if (!origin) return;
+    paths.set(`${origin.lat}|${origin.lon}|${spot.beacon}|${spot.band}`, { origin, spot });
+  });
+  paths.forEach(({ origin, spot }) => {
+    const color = bandColor(spot.band);
+    L.polyline(arcPoints(origin, spot), { color, opacity: 0.68, weight: 2 })
+      .bindTooltip(`${spot.call} · ${spot.band || "Unknown band"} · ${spot.beacon}`)
+      .addTo(rbnMapLayers);
+    bounds.push([origin.lat, origin.lon]);
+  });
+  beacons.forEach((spot) => {
+    const color = bandColor(spot.band);
+    L.circleMarker([spot.lat, spot.lon], {
+      radius: 4,
+      color,
+      fillColor: color,
+      fillOpacity: 0.85,
+      weight: 1
+    }).bindTooltip(`${spot.beacon}${spot.grid ? ` · ${spot.grid}` : ""}`).addTo(rbnMapLayers);
+    bounds.push([spot.lat, spot.lon]);
+  });
+
+  const activeBands = [...new Set(state.spots.map((spot) => spot.band).filter(Boolean))];
+  rbnLegend.innerHTML = activeBands.map((band) => `<span><i class="band-line" style="background:${bandColor(band)}"></i>${escapeHtml(band)}</span>`).join("");
+  rbnLegend.hidden = !activeBands.length;
+  rbnMapEmpty.textContent = !state.active
+    ? "Connect RBN to display beacon paths."
+    : !beacons.size
+      ? "Waiting for reporting beacon locations."
+      : "Reporting beacons are shown. A signal grid is needed to draw each path.";
+  rbnMapEmpty.hidden = Boolean(beacons.size);
+  if (bounds.length > 1) rbnMap.fitBounds(bounds, { padding: [28, 28], maxZoom: 5 });
+  setTimeout(() => rbnMap.invalidateSize(), 0);
+}
+
+function signalOrigin(spot, state) {
+  if (spot.call === state.stationCallsign && state.home) return state.home;
+  if (Number.isFinite(Number(spot.originLat)) && Number.isFinite(Number(spot.originLon))) {
+    return { lat: Number(spot.originLat), lon: Number(spot.originLon) };
+  }
+  return null;
+}
+
+function hasCoordinates(point) {
+  return Number.isFinite(Number(point.lat)) && Number.isFinite(Number(point.lon));
+}
+
+function arcPoints(start, end) {
+  const startLat = Number(start.lat);
+  const startLon = Number(start.lon);
+  const endLat = Number(end.lat);
+  let endLon = Number(end.lon);
+  while (endLon - startLon > 180) endLon -= 360;
+  while (endLon - startLon < -180) endLon += 360;
+  const distance = Math.hypot(endLat - startLat, endLon - startLon);
+  const bend = Math.min(24, Math.max(2.5, distance * 0.16));
+  return Array.from({ length: 25 }, (_, index) => {
+    const progress = index / 24;
+    return [
+      startLat + (endLat - startLat) * progress + Math.sin(Math.PI * progress) * bend,
+      startLon + (endLon - startLon) * progress
+    ];
+  });
+}
+
+function modeIcon(mode) {
+  if (mode === "CW") return "activity";
+  if (mode === "RTTY") return "binary";
+  return "waves";
+}
+
+function bandColor(band) {
+  return BAND_COLORS[band] || "#64748b";
+}
+
+function renderIcons() {
+  if (window.lucide) window.lucide.createIcons();
 }
 
 function renderRows() {

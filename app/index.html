@@ -4,7 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>GitLogBook</title>
-    <link rel="stylesheet" href="/styles.css?v=5">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+    <link rel="stylesheet" href="/styles.css?v=7">
   </head>
   <body>
     <header class="topbar">
@@ -13,6 +14,10 @@
         <p>Local ADIF logger and static public log publisher</p>
       </div>
       <nav>
+        <button id="rbnToggle" type="button" class="icon-button rbn-toggle" aria-pressed="false" title="Connect to Reverse Beacon Network">
+          <i data-lucide="radio-tower"></i>
+          <span class="sr-only">Toggle Reverse Beacon Network</span>
+        </button>
         <a href="/site" target="_blank">Preview Site</a>
         <button id="exportButton" type="button">Export</button>
         <button id="publishButton" type="button">Publish</button>
@@ -67,7 +72,12 @@
                 <option>1mm</option>
               </select>
             </label>
-            <label>Frequency <input name="freq" required inputmode="decimal" placeholder="14.250"></label>
+            <label>Frequency (MHz)
+              <span class="unit-input">
+                <input name="freq" required inputmode="decimal" placeholder="14.250" aria-describedby="freqUnit">
+                <span id="freqUnit" aria-hidden="true">MHz</span>
+              </span>
+            </label>
           </div>
           <div class="split">
             <label>Mode
@@ -188,6 +198,84 @@
           </table>
         </div>
       </section>
+
+      <section id="rbnPanel" class="panel rbn-panel">
+        <div class="rbn-head">
+          <div>
+            <div class="rbn-title-line">
+              <h2>Reverse Beacon Network</h2>
+              <span id="rbnStatus" class="rbn-status">Disconnected</span>
+            </div>
+            <p id="rbnConnectionStatus">Connect to begin receiving CW, RTTY, and FT8 spots.</p>
+          </div>
+          <div class="rbn-head-actions">
+            <button id="rbnPanelToggle" type="button" class="icon-text-button">
+              <i data-lucide="radio-tower"></i>
+              <span>Connect RBN</span>
+            </button>
+            <button id="beaconListToggle" type="button" class="ghost icon-text-button" aria-pressed="true" title="Show or hide beacon list">
+              <i data-lucide="list"></i>
+              <span>Beacons</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="rbn-controls">
+          <form id="rbnFilterForm" class="rbn-filter-form">
+            <label for="rbnFilterInput">Watched callsigns</label>
+            <div class="rbn-filter-entry">
+              <input id="rbnFilterInput" name="callsign" autocomplete="off" placeholder="Add callsign">
+              <button type="submit" class="icon-button" title="Add callsign filter" aria-label="Add callsign filter">
+                <i data-lucide="plus"></i>
+              </button>
+            </div>
+          </form>
+          <div>
+            <span class="rbn-control-label">Active filters</span>
+            <div id="rbnFilters" class="rbn-filters"></div>
+          </div>
+        </div>
+
+        <div class="rbn-map-layout">
+          <div class="rbn-map-wrap">
+            <div id="rbnMap"></div>
+            <p id="rbnMapEmpty">Connect RBN to display beacon paths.</p>
+            <div id="rbnLegend" class="rbn-legend"></div>
+          </div>
+          <aside id="rbnBeaconPanel" class="rbn-beacons">
+            <div class="rbn-beacon-head">
+              <h3>Reporting Beacons</h3>
+              <span id="rbnBeaconCount">0</span>
+            </div>
+            <div id="rbnBeaconRows" class="rbn-beacon-rows"></div>
+          </aside>
+        </div>
+
+        <div class="rbn-table-head">
+          <div>
+            <h3>Spots</h3>
+            <p id="rbnSpotSummary">0 spots</p>
+          </div>
+          <span>Updates every 20 seconds</span>
+        </div>
+        <div class="table-wrap rbn-table-wrap">
+          <table class="rbn-table">
+            <thead>
+              <tr>
+                <th>Time</th>
+                <th>Call</th>
+                <th>Beacon</th>
+                <th>Freq MHz</th>
+                <th>Band</th>
+                <th>Mode</th>
+                <th>SNR</th>
+                <th>Speed</th>
+              </tr>
+            </thead>
+            <tbody id="rbnRows"></tbody>
+          </table>
+        </div>
+      </section>
     </main>
 
     <dialog id="appDialog" class="modal">
@@ -205,6 +293,8 @@
       </form>
     </dialog>
 
-    <script src="/app.js?v=6"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+    <script src="/app.js?v=9"></script>
   </body>
 </html>

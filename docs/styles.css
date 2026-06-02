@@ -285,12 +285,8 @@ select:focus {
   border-radius: 999px;
 }
 
-.dot.confirmed {
+.dot.contact {
   background: var(--accent);
-}
-
-.dot.estimated {
-  background: var(--amber);
 }
 
 .dot.home {
@@ -561,28 +557,6 @@ tbody tr:hover {
 td strong {
   color: var(--navy);
   font-weight: 850;
-}
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  min-height: 24px;
-  border-radius: 999px;
-  padding: 4px 9px;
-  background: var(--accent-soft);
-  color: #0d625d;
-  font-size: 12px;
-  font-weight: 850;
-}
-
-.badge.estimated {
-  background: var(--amber-soft);
-  color: var(--amber);
-}
-
-.badge.unmapped {
-  background: var(--blue-soft);
-  color: var(--blue);
 }
 
 .empty {

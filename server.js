@@ -7,6 +7,7 @@ const { parseAdif, writeAdif, normalizeQso } = require("./lib/adif");
 const { buildPublicExport } = require("./lib/exporter");
 const { importAdifFile } = require("./lib/importer");
 const { latLonToGrid } = require("./lib/maidenhead");
+const { RbnService } = require("./lib/rbn");
 
 const ROOT = __dirname;
 const DATA_DIR = path.join(ROOT, "data");
@@ -16,6 +17,7 @@ const APP_LOCAL_SETTINGS_PATH = path.join(DATA_DIR, "app-settings.local.json");
 const CACHE_PATH = path.join(DATA_DIR, "callsign-cache.json");
 const PORT = Number(process.env.PORT || 5173);
 const HOST = process.env.HOST || "127.0.0.1";
+const rbn = new RbnService();
 
 const MIME = {
   ".html": "text/html; charset=utf-8",
@@ -161,6 +163,7 @@ async function handleApi(req, res, url) {
   if (method === "PUT" && url.pathname === "/api/settings") {
     const settings = mergeSettings(await readSettings(), await readBody(req));
     await saveSettings(settings);
+    rbn.updateSettings(settings);
     await exportPublic();
     sendJson(res, 200, settings);
     return;
@@ -168,6 +171,29 @@ async function handleApi(req, res, url) {
 
   if (method === "POST" && url.pathname === "/api/lookup") {
     sendJson(res, 200, await lookupCallsign(await readBody(req)));
+    return;
+  }
+
+  if (method === "GET" && url.pathname === "/api/rbn") {
+    sendJson(res, 200, rbn.snapshot());
+    return;
+  }
+
+  if (method === "PUT" && url.pathname === "/api/rbn") {
+    const body = await readBody(req);
+    const settings = await readSettings();
+    sendJson(res, 200, body.active ? await rbn.start(settings) : rbn.stop());
+    return;
+  }
+
+  if (method === "POST" && url.pathname === "/api/rbn/filters") {
+    sendJson(res, 200, rbn.addFilter((await readBody(req)).callsign));
+    return;
+  }
+
+  const rbnFilterMatch = url.pathname.match(/^\/api\/rbn\/filters\/([^/]+)$/);
+  if (method === "DELETE" && rbnFilterMatch) {
+    sendJson(res, 200, rbn.removeFilter(decodeURIComponent(rbnFilterMatch[1])));
     return;
   }
 
@@ -384,7 +410,7 @@ function validateQso(qso) {
     ["qsoDate", "Date"],
     ["timeOn", "Time"],
     ["band", "Band"],
-    ["freq", "Frequency"],
+    ["freq", "Frequency (MHz)"],
     ["mode", "Mode"],
     ["rstSent", "RST sent"],
     ["rstRcvd", "RST received"]

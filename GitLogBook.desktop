@@ -2,6 +2,7 @@
 Type=Application
 Name=GitLogBook
 Comment=Start the local GitLogBook logger
-Exec=sh -c "cd \"\\$(dirname \"\\$1\")\" && ./scripts/start-local.sh" launcher %k
+Exec="/home/beegs/Desktop/Ham Radio/GitLogBook/scripts/start-local.sh"
+Path=/home/beegs/Desktop/Ham Radio/GitLogBook
 Terminal=true
 Categories=Utility;

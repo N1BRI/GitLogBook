@@ -147,7 +147,7 @@ function renderTable() {
   controls.resultCount.textContent = `${state.filtered.length} shown`;
   controls.rows.innerHTML = "";
   if (!state.filtered.length) {
-    controls.rows.innerHTML = `<tr><td colspan="7" class="empty">No contacts match these filters.</td></tr>`;
+    controls.rows.innerHTML = `<tr><td colspan="6" class="empty">No contacts match these filters.</td></tr>`;
     return;
   }
 
@@ -161,7 +161,6 @@ function renderTable() {
       <td>${escapeHtml(qso.band)}</td>
       <td>${escapeHtml(qso.mode)}</td>
       <td>${escapeHtml(qso.grid)}</td>
-      <td>${locationBadge(qso)}</td>
     `;
     fragment.appendChild(tr);
   });
@@ -201,8 +200,8 @@ function renderMap() {
   grouped.forEach((point) => {
     const marker = L.circleMarker([point.lat, point.lon], {
       radius: Math.min(22, 6 + Math.sqrt(point.count) * 2),
-      color: point.locationConfidence === "estimated" ? "#b7791f" : "#0f766e",
-      fillColor: point.locationConfidence === "estimated" ? "#f6c453" : "#14b8a6",
+      color: "#0f766e",
+      fillColor: "#14b8a6",
       fillOpacity: 0.72,
       weight: 2
     });
@@ -329,12 +328,6 @@ function compareBands(a, b) {
 function bandRank(band) {
   const match = String(band || "").match(/^(\d+)/);
   return match ? Number(match[1]) : Number.MAX_SAFE_INTEGER;
-}
-
-function locationBadge(qso) {
-  if (!qso.mapped) return `<span class="badge unmapped">Unmapped</span>`;
-  if (qso.locationConfidence === "estimated") return `<span class="badge estimated">Estimated</span>`;
-  return `<span class="badge">Confirmed</span>`;
 }
 
 function unique(field) {
