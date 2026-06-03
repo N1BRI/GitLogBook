@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>GitLogBook</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-    <link rel="stylesheet" href="/styles.css?v=7">
+    <link rel="stylesheet" href="/styles.css?v=10">
   </head>
   <body>
     <header class="topbar">
@@ -197,6 +197,15 @@
             <tbody id="qsoRows"></tbody>
           </table>
         </div>
+        <div id="logPager" class="log-pager" hidden>
+          <button id="logPrevButton" type="button" class="ghost icon-button" title="Previous page" aria-label="Previous page">
+            <i data-lucide="chevron-left"></i>
+          </button>
+          <span id="logPageStatus">Page 1 of 1</span>
+          <button id="logNextButton" type="button" class="ghost icon-button" title="Next page" aria-label="Next page">
+            <i data-lucide="chevron-right"></i>
+          </button>
+        </div>
       </section>
 
       <section id="rbnPanel" class="panel rbn-panel">
@@ -213,9 +222,9 @@
               <i data-lucide="radio-tower"></i>
               <span>Connect RBN</span>
             </button>
-            <button id="beaconListToggle" type="button" class="ghost icon-text-button" aria-pressed="true" title="Show or hide beacon list">
-              <i data-lucide="list"></i>
-              <span>Beacons</span>
+            <button id="beaconListToggle" type="button" class="ghost icon-text-button" aria-pressed="true" title="Hide RBN node markers">
+              <i data-lucide="map-pin"></i>
+              <span>Nodes</span>
             </button>
           </div>
         </div>
@@ -234,6 +243,18 @@
             <span class="rbn-control-label">Active filters</span>
             <div id="rbnFilters" class="rbn-filters"></div>
           </div>
+          <div class="rbn-spot-filters">
+            <label for="rbnBandFilter">Band</label>
+            <select id="rbnBandFilter">
+              <option value="">All bands</option>
+            </select>
+          </div>
+          <div class="rbn-spot-filters">
+            <label for="rbnModeFilter">Mode</label>
+            <select id="rbnModeFilter">
+              <option value="">All modes</option>
+            </select>
+          </div>
         </div>
 
         <div class="rbn-map-layout">
@@ -242,13 +263,6 @@
             <p id="rbnMapEmpty">Connect RBN to display beacon paths.</p>
             <div id="rbnLegend" class="rbn-legend"></div>
           </div>
-          <aside id="rbnBeaconPanel" class="rbn-beacons">
-            <div class="rbn-beacon-head">
-              <h3>Reporting Beacons</h3>
-              <span id="rbnBeaconCount">0</span>
-            </div>
-            <div id="rbnBeaconRows" class="rbn-beacon-rows"></div>
-          </aside>
         </div>
 
         <div class="rbn-table-head">
@@ -295,6 +309,6 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-    <script src="/app.js?v=9"></script>
+    <script src="/app.js?v=18"></script>
   </body>
 </html>

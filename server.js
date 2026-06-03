@@ -175,6 +175,8 @@ async function handleApi(req, res, url) {
   }
 
   if (method === "GET" && url.pathname === "/api/rbn") {
+    rbn.updateSettings(await readSettings());
+    await rbn.refreshNodes();
     sendJson(res, 200, rbn.snapshot());
     return;
   }

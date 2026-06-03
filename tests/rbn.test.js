@@ -31,15 +31,38 @@ test("bandForFrequency covers common RBN frequencies", () => {
 test("parseNodes extracts callsign and Maidenhead location from an RBN table", () => {
   const nodes = parseNodes(`
     <table>
-      <tr><td>W3LPL</td><td>160m,80m,40m</td><td>FM18</td><td>K</td></tr>
-      <tr><td>K1TTT</td><td>20m</td><td>FN32kp</td><td>K</td></tr>
+      <tr>
+        <td><a>W3LPL</a></td><td>160m,80m,40m</td><td>FM18</td><td>K</td>
+        <td>NA</td><td>8</td><td>5</td><td><b class="hide">1</b> 4 years ago</td><td><b class="hide">2</b> online</td>
+      </tr>
+      <tr><td>K1TTT</td><td>20m</td><td>FN32kp</td><td>K</td><td>NA</td><td></td><td></td><td></td><td>12 minutes ago</td></tr>
     </table>
   `);
 
   assert.equal(nodes.length, 2);
   assert.equal(nodes[0].beacon, "W3LPL");
+  assert.equal(nodes[0].bands, "160m,80m,40m");
   assert.equal(nodes[0].grid, "FM18");
+  assert.equal(nodes[0].lastSeen, "online");
   assert.equal(nodes[1].grid, "FN32KP");
+});
+
+test("RbnService can expose node directory without live spots", async () => {
+  const service = new RbnService({
+    createConnection: fakeSocket,
+    fetchText: async () => `
+      <tr><td>W3LPL</td><td>20m</td><td>FM18</td><td>K</td><td>NA</td><td></td><td></td><td></td><td>online</td></tr>
+    `
+  });
+
+  await service.refreshNodes();
+
+  const snapshot = service.snapshot();
+  assert.equal(snapshot.active, false);
+  assert.equal(snapshot.spots.length, 0);
+  assert.equal(snapshot.beacons.length, 0);
+  assert.equal(snapshot.nodes.length, 1);
+  assert.equal(snapshot.nodes[0].beacon, "W3LPL");
 });
 
 test("RbnService defaults to station filter and retains watched-call session history", async () => {

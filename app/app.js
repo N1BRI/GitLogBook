@@ -4,6 +4,10 @@ const importForm = document.querySelector("#importForm");
 const rows = document.querySelector("#qsoRows");
 const searchInput = document.querySelector("#searchInput");
 const summary = document.querySelector("#summary");
+const logPager = document.querySelector("#logPager");
+const logPrevButton = document.querySelector("#logPrevButton");
+const logNextButton = document.querySelector("#logNextButton");
+const logPageStatus = document.querySelector("#logPageStatus");
 const statusEl = document.querySelector("#formStatus");
 const settingsStatusEl = document.querySelector("#settingsStatus");
 const importStatusEl = document.querySelector("#importStatus");
@@ -18,14 +22,14 @@ const rbnStatus = document.querySelector("#rbnStatus");
 const rbnConnectionStatus = document.querySelector("#rbnConnectionStatus");
 const rbnFilterForm = document.querySelector("#rbnFilterForm");
 const rbnFilters = document.querySelector("#rbnFilters");
+const rbnBandFilter = document.querySelector("#rbnBandFilter");
+const rbnModeFilter = document.querySelector("#rbnModeFilter");
 const rbnRows = document.querySelector("#rbnRows");
 const rbnSpotSummary = document.querySelector("#rbnSpotSummary");
 const rbnMapEmpty = document.querySelector("#rbnMapEmpty");
 const rbnLegend = document.querySelector("#rbnLegend");
-const rbnBeaconPanel = document.querySelector("#rbnBeaconPanel");
-const rbnBeaconRows = document.querySelector("#rbnBeaconRows");
-const rbnBeaconCount = document.querySelector("#rbnBeaconCount");
 const beaconListToggle = document.querySelector("#beaconListToggle");
+const beaconListToggleLabel = beaconListToggle.querySelector("span");
 const dialog = document.querySelector("#appDialog");
 const dialogTitle = document.querySelector("#dialogTitle");
 const dialogMessage = document.querySelector("#dialogMessage");
@@ -39,6 +43,9 @@ let rbnState = null;
 let rbnPollTimer = null;
 let rbnMap = null;
 let rbnMapLayers = null;
+let rbnBeaconsVisible = true;
+let logPage = 1;
+const LOG_PAGE_SIZE = 20;
 
 const BAND_COLORS = {
   "160m": "#7c3aed",
@@ -54,6 +61,7 @@ const BAND_COLORS = {
   "6m": "#475569",
   "2m": "#111827"
 };
+const BAND_ORDER = Object.keys(BAND_COLORS);
 
 init();
 
@@ -69,7 +77,18 @@ async function init() {
 function bindEvents() {
   form.addEventListener("submit", saveQso);
   resetButton.addEventListener("click", resetForm);
-  searchInput.addEventListener("input", renderRows);
+  searchInput.addEventListener("input", () => {
+    logPage = 1;
+    renderRows();
+  });
+  logPrevButton.addEventListener("click", () => {
+    logPage = Math.max(1, logPage - 1);
+    renderRows();
+  });
+  logNextButton.addEventListener("click", () => {
+    logPage += 1;
+    renderRows();
+  });
   form.elements.call.addEventListener("input", clearLookupFields);
   lookupButton.addEventListener("click", lookupCallsign);
   exportButton.addEventListener("click", exportPublic);
@@ -80,7 +99,9 @@ function bindEvents() {
   rbnPanelToggle.addEventListener("click", toggleRbn);
   rbnFilterForm.addEventListener("submit", addRbnFilter);
   rbnFilters.addEventListener("click", removeRbnFilter);
-  beaconListToggle.addEventListener("click", toggleBeaconList);
+  rbnBandFilter.addEventListener("change", renderRbn);
+  rbnModeFilter.addEventListener("change", renderRbn);
+  beaconListToggle.addEventListener("click", toggleRbnBeacons);
 }
 
 async function loadQsos() {
@@ -128,10 +149,10 @@ async function removeRbnFilter(event) {
   renderRbn();
 }
 
-function toggleBeaconList() {
-  rbnBeaconPanel.hidden = !rbnBeaconPanel.hidden;
-  beaconListToggle.setAttribute("aria-pressed", String(!rbnBeaconPanel.hidden));
-  if (rbnMap) setTimeout(() => rbnMap.invalidateSize(), 0);
+function toggleRbnBeacons() {
+  rbnBeaconsVisible = !rbnBeaconsVisible;
+  renderRbnBeaconToggle(rbnState?.nodes || []);
+  renderRbnMap(rbnState || { active: false, spots: [], beacons: [] });
 }
 
 function scheduleRbnPoll() {
@@ -273,9 +294,11 @@ function renderRbn() {
     ? `${connected} of ${state.connections.length} streams connected. ${state.filters.length ? "Showing watched-call history." : "Showing the latest 250 unfiltered spots."}`
     : "Connect to begin receiving CW, RTTY, and FT8 spots.";
   renderRbnFilters(state.filters);
-  renderRbnRows(state.spots);
-  renderRbnBeacons(state.beacons);
-  renderRbnMap(state);
+  renderRbnSpotFilters(state.spots);
+  const filteredSpots = filterRbnSpots(state.spots);
+  renderRbnRows(filteredSpots, state.spots.length);
+  renderRbnBeaconToggle(state.nodes || []);
+  renderRbnMap({ ...state, spots: filteredSpots, useHomeFallback: Boolean(rbnModeFilter.value) });
   renderIcons();
 }
 
@@ -294,10 +317,42 @@ function renderRbnFilters(filters) {
   `).join("");
 }
 
-function renderRbnRows(spots) {
-  rbnSpotSummary.textContent = `${spots.length} ${spots.length === 1 ? "spot" : "spots"}`;
+function renderRbnSpotFilters(spots) {
+  fillRbnSpotFilter(rbnBandFilter, uniqueRbnValues(spots, "band"), "All bands");
+  fillRbnSpotFilter(rbnModeFilter, uniqueRbnValues(spots, "mode"), "All modes");
+}
+
+function fillRbnSpotFilter(select, values, emptyLabel) {
+  const selected = select.value;
+  select.innerHTML = [`<option value="">${emptyLabel}</option>`, ...values.map((value) => (
+    `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`
+  ))].join("");
+  select.value = values.includes(selected) ? selected : "";
+}
+
+function uniqueRbnValues(spots, field) {
+  return [...new Set(spots.map((spot) => spot[field]).filter(Boolean))].sort(compareNatural);
+}
+
+function compareNatural(a, b) {
+  const bandA = BAND_ORDER.indexOf(a);
+  const bandB = BAND_ORDER.indexOf(b);
+  if (bandA >= 0 && bandB >= 0) return bandA - bandB;
+  return String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: "base" });
+}
+
+function filterRbnSpots(spots) {
+  const band = rbnBandFilter.value;
+  const mode = rbnModeFilter.value;
+  return spots.filter((spot) => (!band || spot.band === band) && (!mode || spot.mode === mode));
+}
+
+function renderRbnRows(spots, totalSpots = spots.length) {
+  rbnSpotSummary.textContent = totalSpots === spots.length
+    ? `${spots.length} ${spots.length === 1 ? "spot" : "spots"}`
+    : `${spots.length} of ${totalSpots} spots`;
   if (!spots.length) {
-    rbnRows.innerHTML = `<tr><td colspan="8" class="empty">No RBN spots received for this view yet.</td></tr>`;
+    rbnRows.innerHTML = `<tr><td colspan="8" class="empty">${totalSpots ? "No RBN spots match these filters." : "No RBN spots received for this view yet."}</td></tr>`;
     return;
   }
   rbnRows.innerHTML = spots.map((spot) => `
@@ -314,16 +369,11 @@ function renderRbnRows(spots) {
   `).join("");
 }
 
-function renderRbnBeacons(beacons) {
-  rbnBeaconCount.textContent = beacons.length;
-  rbnBeaconRows.innerHTML = beacons.length
-    ? beacons.map((beacon) => `
-      <div class="rbn-beacon-row">
-        <strong>${escapeHtml(beacon.beacon)}</strong>
-        <span>${escapeHtml(beacon.grid || "Grid unavailable")} · ${beacon.count}</span>
-      </div>
-    `).join("")
-    : `<p class="empty">No reporting beacons yet.</p>`;
+function renderRbnBeaconToggle(nodes) {
+  const count = nodes.filter(hasCoordinates).length;
+  beaconListToggle.setAttribute("aria-pressed", String(rbnBeaconsVisible));
+  beaconListToggle.title = rbnBeaconsVisible ? "Hide RBN node markers" : "Show RBN node markers";
+  beaconListToggleLabel.textContent = `Nodes${count ? ` ${count}` : ""}`;
 }
 
 function renderRbnMap(state) {
@@ -333,9 +383,18 @@ function renderRbnMap(state) {
     return;
   }
   if (!rbnMap) {
-    rbnMap = L.map("rbnMap", { worldCopyJump: true, zoomControl: true }).setView([25, 0], 2);
+    const worldBounds = L.latLngBounds([[-85, -180], [85, 180]]);
+    rbnMap = L.map("rbnMap", {
+      worldCopyJump: false,
+      zoomControl: true,
+      maxZoom: 8
+    }).setView([25, 0], 2);
+    setRbnFillZoom();
+    rbnMap.on("resize", setRbnFillZoom);
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      bounds: worldBounds,
       maxZoom: 8,
+      noWrap: true,
       attribution: "&copy; OpenStreetMap contributors"
     }).addTo(rbnMap);
     rbnMapLayers = L.layerGroup().addTo(rbnMap);
@@ -355,44 +414,118 @@ function renderRbnMap(state) {
   }
 
   const paths = new Map();
-  const beacons = new Map();
   state.spots.forEach((spot) => {
     if (!hasCoordinates(spot)) return;
-    beacons.set(spot.beacon, spot);
     const origin = signalOrigin(spot, state);
     if (!origin) return;
     paths.set(`${origin.lat}|${origin.lon}|${spot.beacon}|${spot.band}`, { origin, spot });
   });
   paths.forEach(({ origin, spot }) => {
     const color = bandColor(spot.band);
-    L.polyline(arcPoints(origin, spot), { color, opacity: 0.68, weight: 2 })
-      .bindTooltip(`${spot.call} · ${spot.band || "Unknown band"} · ${spot.beacon}`)
+    L.polyline(arcPoints(origin, spot), {
+      color,
+      opacity: origin.estimated ? 0.42 : 0.68,
+      weight: 2,
+      dashArray: origin.estimated ? "6 7" : null
+    })
+      .bindTooltip(`${spot.call} · ${spot.band || "Unknown band"} · ${spot.beacon}${origin.estimated ? " · origin estimated from home grid" : ""}`)
       .addTo(rbnMapLayers);
     bounds.push([origin.lat, origin.lon]);
+    bounds.push([Number(spot.lat), Number(spot.lon)]);
   });
-  beacons.forEach((spot) => {
-    const color = bandColor(spot.band);
-    L.circleMarker([spot.lat, spot.lon], {
-      radius: 4,
-      color,
-      fillColor: color,
-      fillOpacity: 0.85,
-      weight: 1
-    }).bindTooltip(`${spot.beacon}${spot.grid ? ` · ${spot.grid}` : ""}`).addTo(rbnMapLayers);
-    bounds.push([spot.lat, spot.lon]);
-  });
+  const nodes = (state.nodes || []).filter(hasCoordinates);
+  if (rbnBeaconsVisible) {
+    nodes.forEach((node) => {
+      L.circleMarker([node.lat, node.lon], {
+        radius: 5,
+        color: "#0f766e",
+        fillColor: "#14b8a6",
+        fillOpacity: 0.86,
+        weight: 2
+      }).bindTooltip(rbnNodeTooltip(node)).addTo(rbnMapLayers);
+      bounds.push([Number(node.lat), Number(node.lon)]);
+    });
+  }
 
   const activeBands = [...new Set(state.spots.map((spot) => spot.band).filter(Boolean))];
+  const hasPaths = paths.size > 0;
+  const hasVisibleNodes = rbnBeaconsVisible && nodes.length > 0;
   rbnLegend.innerHTML = activeBands.map((band) => `<span><i class="band-line" style="background:${bandColor(band)}"></i>${escapeHtml(band)}</span>`).join("");
   rbnLegend.hidden = !activeBands.length;
-  rbnMapEmpty.textContent = !state.active
-    ? "Connect RBN to display beacon paths."
-    : !beacons.size
-      ? "Waiting for reporting beacon locations."
-      : "Reporting beacons are shown. A signal grid is needed to draw each path.";
-  rbnMapEmpty.hidden = Boolean(beacons.size);
+  rbnMapEmpty.textContent = !nodes.length
+    ? "Loading RBN node locations."
+    : !rbnBeaconsVisible
+      ? "RBN node markers are hidden."
+      : state.active
+        ? "RBN nodes are shown. A signal grid is needed to draw each path."
+        : "RBN node locations are shown. Connect RBN to display live paths.";
+  rbnMapEmpty.hidden = hasPaths || hasVisibleNodes;
   if (bounds.length > 1) rbnMap.fitBounds(bounds, { padding: [28, 28], maxZoom: 5 });
-  setTimeout(() => rbnMap.invalidateSize(), 0);
+  setTimeout(() => {
+    rbnMap.invalidateSize();
+    setRbnFillZoom();
+  }, 0);
+}
+
+function setRbnFillZoom() {
+  if (!rbnMap) return;
+  const size = rbnMap.getSize();
+  const minZoom = Math.min(8, Math.max(1, Math.ceil(Math.log2(Math.max(size.x, size.y) / 256))));
+  rbnMap.setMinZoom(minZoom);
+  if (rbnMap.getZoom() < minZoom) rbnMap.setZoom(minZoom);
+}
+
+function rbnNodeTooltip(node) {
+  const status = rbnNodeStatus(node.lastSeen);
+  const details = [node.grid, node.bands].filter(Boolean).map(escapeHtml);
+  return `
+    <div class="rbn-node-tooltip">
+      <strong>${escapeHtml(node.beacon)}</strong>
+      <span class="rbn-node-status" data-tone="${status.tone}">
+        <i></i>${escapeHtml(status.label)}
+      </span>
+      ${details.length ? `<span>${details.join(" · ")}</span>` : ""}
+    </div>
+  `;
+}
+
+function rbnNodeStatus(lastSeen) {
+  const value = String(lastSeen || "").trim();
+  if (!value) return { tone: "stale", label: "last seen unknown" };
+  if (/^online$/i.test(value)) return { tone: "online", label: "online" };
+  const seenDate = relativeLastSeenDate(value);
+  return {
+    tone: isWithinLastWeek(value) ? "recent" : "stale",
+    label: seenDate ? `last seen on ${formatShortDate(seenDate)}` : `last seen ${value}`
+  };
+}
+
+function isWithinLastWeek(value) {
+  const text = String(value).toLowerCase();
+  if (/\bminute|hour\b/.test(text)) return true;
+  const days = text.match(/(\d+)\s+day/);
+  if (days) return Number(days[1]) < 7;
+  return false;
+}
+
+function relativeLastSeenDate(value) {
+  const text = String(value).toLowerCase();
+  const date = new Date();
+  const minutes = text.match(/(\d+)\s+minute/);
+  const hours = text.match(/(\d+)\s+hour/);
+  const days = text.match(/(\d+)\s+day/);
+  const months = text.match(/(\d+)\s+month/);
+  const years = text.match(/(\d+)\s+year/);
+  if (minutes) date.setMinutes(date.getMinutes() - Number(minutes[1]));
+  if (hours) date.setHours(date.getHours() - Number(hours[1]));
+  if (days) date.setDate(date.getDate() - Number(days[1]));
+  if (months) date.setMonth(date.getMonth() - Number(months[1]));
+  if (years) date.setFullYear(date.getFullYear() - Number(years[1]));
+  return minutes || hours || days || months || years ? date : null;
+}
+
+function formatShortDate(date) {
+  return date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 }
 
 function signalOrigin(spot, state) {
@@ -400,6 +533,7 @@ function signalOrigin(spot, state) {
   if (Number.isFinite(Number(spot.originLat)) && Number.isFinite(Number(spot.originLon))) {
     return { lat: Number(spot.originLat), lon: Number(spot.originLon) };
   }
+  if (state.useHomeFallback && state.home) return { ...state.home, estimated: true };
   return null;
 }
 
@@ -409,11 +543,9 @@ function hasCoordinates(point) {
 
 function arcPoints(start, end) {
   const startLat = Number(start.lat);
-  const startLon = Number(start.lon);
+  const startLon = normalizeMapLon(start.lon);
   const endLat = Number(end.lat);
-  let endLon = Number(end.lon);
-  while (endLon - startLon > 180) endLon -= 360;
-  while (endLon - startLon < -180) endLon += 360;
+  const endLon = normalizeMapLon(end.lon);
   const distance = Math.hypot(endLat - startLat, endLon - startLon);
   const bend = Math.min(24, Math.max(2.5, distance * 0.16));
   return Array.from({ length: 25 }, (_, index) => {
@@ -423,6 +555,13 @@ function arcPoints(start, end) {
       startLon + (endLon - startLon) * progress
     ];
   });
+}
+
+function normalizeMapLon(value) {
+  let lon = Number(value);
+  while (lon > 180) lon -= 360;
+  while (lon < -180) lon += 360;
+  return lon;
 }
 
 function modeIcon(mode) {
@@ -448,8 +587,14 @@ function renderRows() {
     return haystack.includes(query);
   });
 
+  const totalPages = Math.max(1, Math.ceil(filtered.length / LOG_PAGE_SIZE));
+  logPage = Math.min(logPage, totalPages);
+  const pageStart = (logPage - 1) * LOG_PAGE_SIZE;
+  const pageRows = filtered.slice(pageStart, pageStart + LOG_PAGE_SIZE);
+
   summary.textContent = `${filtered.length} of ${qsos.length} QSOs`;
   rows.innerHTML = "";
+  renderLogPager(filtered.length, totalPages);
 
   if (!filtered.length) {
     rows.innerHTML = `<tr><td colspan="7" class="empty">No QSOs yet.</td></tr>`;
@@ -457,7 +602,7 @@ function renderRows() {
   }
 
   const fragment = document.createDocumentFragment();
-  filtered.forEach((qso) => {
+  pageRows.forEach((qso) => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${escapeHtml(displayDate(qso.qsoDate))}</td>
@@ -477,6 +622,17 @@ function renderRows() {
     fragment.appendChild(tr);
   });
   rows.appendChild(fragment);
+}
+
+function renderLogPager(totalRows, totalPages) {
+  logPager.hidden = totalRows <= LOG_PAGE_SIZE;
+  logPrevButton.disabled = logPage <= 1;
+  logNextButton.disabled = logPage >= totalPages;
+  const first = totalRows ? (logPage - 1) * LOG_PAGE_SIZE + 1 : 0;
+  const last = Math.min(totalRows, logPage * LOG_PAGE_SIZE);
+  logPageStatus.textContent = totalRows
+    ? `${first}-${last} of ${totalRows} · Page ${logPage} of ${totalPages}`
+    : "Page 1 of 1";
 }
 
 async function handleRowAction(event) {
