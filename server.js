@@ -130,6 +130,13 @@ async function handleApi(req, res, url) {
     return;
   }
 
+  if (method === "GET" && url.pathname === "/api/export/adif") {
+    const settings = await readSettings();
+    const filename = adifExportFilename(settings.stationCallsign);
+    sendDownload(res, filename, "application/octet-stream", writeAdif(await readQsos()));
+    return;
+  }
+
   if (method === "POST" && url.pathname === "/api/export") {
     const result = await exportPublic();
     sendJson(res, 200, result.stats);
@@ -220,6 +227,12 @@ async function exportPublic() {
   await fs.writeFile(path.join(docsDir(root), "data", "stats.json"), JSON.stringify(result.stats, null, 2), "utf8");
   await fs.writeFile(path.join(docsDir(root), "data", "site-config.json"), JSON.stringify(result.config, null, 2), "utf8");
   return result;
+}
+
+function adifExportFilename(stationCallsign) {
+  const call = cleanString(stationCallsign).toUpperCase().replace(/[^A-Z0-9-]+/g, "") || "logbook";
+  const date = new Date().toISOString().slice(0, 10);
+  return `${call}-${date}.adi`;
 }
 
 async function ensureExport() {
@@ -504,6 +517,15 @@ async function serveStatic(res, root, pathname) {
 function sendJson(res, status, payload) {
   res.writeHead(status, { "Content-Type": "application/json; charset=utf-8" });
   res.end(JSON.stringify(payload));
+}
+
+function sendDownload(res, filename, contentType, body) {
+  res.writeHead(200, {
+    "Content-Type": contentType,
+    "Content-Disposition": `attachment; filename="${filename}"`,
+    "Cache-Control": "no-store"
+  });
+  res.end(body);
 }
 
 function sendText(res, status, text) {

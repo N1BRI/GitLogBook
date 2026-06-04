@@ -16,7 +16,6 @@ const resetButton = document.querySelector("#resetButton");
 const lookupButton = document.querySelector("#lookupButton");
 const exportButton = document.querySelector("#exportButton");
 const publishButton = document.querySelector("#publishButton");
-const rbnToggle = document.querySelector("#rbnToggle");
 const rbnPanelToggle = document.querySelector("#rbnPanelToggle");
 const rbnStatus = document.querySelector("#rbnStatus");
 const rbnConnectionStatus = document.querySelector("#rbnConnectionStatus");
@@ -30,6 +29,7 @@ const rbnMapEmpty = document.querySelector("#rbnMapEmpty");
 const rbnLegend = document.querySelector("#rbnLegend");
 const beaconListToggle = document.querySelector("#beaconListToggle");
 const beaconListToggleLabel = beaconListToggle.querySelector("span");
+const rbnPathsToggle = document.querySelector("#rbnPathsToggle");
 const dialog = document.querySelector("#appDialog");
 const dialogTitle = document.querySelector("#dialogTitle");
 const dialogMessage = document.querySelector("#dialogMessage");
@@ -44,8 +44,10 @@ let rbnPollTimer = null;
 let rbnMap = null;
 let rbnMapLayers = null;
 let rbnBeaconsVisible = true;
+let rbnPathsVisible = true;
 let logPage = 1;
 const LOG_PAGE_SIZE = 20;
+const RBN_PATH_LIMIT = 50;
 
 const BAND_COLORS = {
   "160m": "#7c3aed",
@@ -91,17 +93,17 @@ function bindEvents() {
   });
   form.elements.call.addEventListener("input", clearLookupFields);
   lookupButton.addEventListener("click", lookupCallsign);
-  exportButton.addEventListener("click", exportPublic);
+  exportButton.addEventListener("click", exportAdif);
   publishButton.addEventListener("click", publish);
   settingsForm.addEventListener("submit", saveSettings);
   importForm.addEventListener("submit", importAdif);
-  rbnToggle.addEventListener("click", toggleRbn);
   rbnPanelToggle.addEventListener("click", toggleRbn);
   rbnFilterForm.addEventListener("submit", addRbnFilter);
   rbnFilters.addEventListener("click", removeRbnFilter);
   rbnBandFilter.addEventListener("change", renderRbn);
   rbnModeFilter.addEventListener("change", renderRbn);
   beaconListToggle.addEventListener("click", toggleRbnBeacons);
+  rbnPathsToggle.addEventListener("click", toggleRbnPaths);
 }
 
 async function loadQsos() {
@@ -121,14 +123,12 @@ async function loadRbn() {
 }
 
 async function toggleRbn() {
-  rbnToggle.disabled = true;
   rbnPanelToggle.disabled = true;
   try {
     rbnState = await api("/api/rbn", { method: "PUT", body: { active: !rbnState?.active } });
     renderRbn();
     scheduleRbnPoll();
   } finally {
-    rbnToggle.disabled = false;
     rbnPanelToggle.disabled = false;
   }
 }
@@ -153,6 +153,11 @@ function toggleRbnBeacons() {
   rbnBeaconsVisible = !rbnBeaconsVisible;
   renderRbnBeaconToggle(rbnState?.nodes || []);
   renderRbnMap(rbnState || { active: false, spots: [], beacons: [] });
+}
+
+function toggleRbnPaths() {
+  rbnPathsVisible = !rbnPathsVisible;
+  renderRbn();
 }
 
 function scheduleRbnPoll() {
@@ -244,9 +249,14 @@ async function lookupCallsign() {
   setStatus(`Estimated location added from ${result.source}.`);
 }
 
-async function exportPublic() {
-  const stats = await api("/api/export", { method: "POST", body: {} });
-  setStatus(`Exported ${stats.total} QSOs to the active repo docs/data. ${stats.mapped} are mapped.`);
+function exportAdif() {
+  const link = document.createElement("a");
+  link.href = "/api/export/adif";
+  link.download = "";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  setStatus("Downloading ADIF log export.");
 }
 
 async function publish() {
@@ -285,8 +295,8 @@ async function publish() {
 function renderRbn() {
   const state = rbnState || { active: false, filters: [], spots: [], beacons: [], connections: [] };
   const connected = state.connections.filter((connection) => connection.status === "connected").length;
-  rbnToggle.setAttribute("aria-pressed", String(state.active));
-  rbnToggle.title = state.active ? "Disconnect from Reverse Beacon Network" : "Connect to Reverse Beacon Network";
+  rbnPanelToggle.setAttribute("aria-pressed", String(state.active));
+  rbnPanelToggle.title = state.active ? "Disconnect from Reverse Beacon Network" : "Connect to Reverse Beacon Network";
   rbnPanelToggle.querySelector("span").textContent = state.active ? "Disconnect RBN" : "Connect RBN";
   rbnStatus.textContent = state.active ? connected ? "Connected" : "Connecting" : "Disconnected";
   rbnStatus.dataset.active = String(state.active);
@@ -298,7 +308,8 @@ function renderRbn() {
   const filteredSpots = filterRbnSpots(state.spots);
   renderRbnRows(filteredSpots, state.spots.length);
   renderRbnBeaconToggle(state.nodes || []);
-  renderRbnMap({ ...state, spots: filteredSpots, useHomeFallback: Boolean(rbnModeFilter.value) });
+  renderRbnPathToggle();
+  renderRbnMap({ ...state, spots: filteredSpots });
   renderIcons();
 }
 
@@ -352,7 +363,7 @@ function renderRbnRows(spots, totalSpots = spots.length) {
     ? `${spots.length} ${spots.length === 1 ? "spot" : "spots"}`
     : `${spots.length} of ${totalSpots} spots`;
   if (!spots.length) {
-    rbnRows.innerHTML = `<tr><td colspan="8" class="empty">${totalSpots ? "No RBN spots match these filters." : "No RBN spots received for this view yet."}</td></tr>`;
+    rbnRows.innerHTML = `<tr><td colspan="9" class="empty">${totalSpots ? "No RBN spots match these filters." : "No RBN spots received for this view yet."}</td></tr>`;
     return;
   }
   rbnRows.innerHTML = spots.map((spot) => `
@@ -363,6 +374,7 @@ function renderRbnRows(spots, totalSpots = spots.length) {
       <td>${escapeHtml(spot.frequencyMhz || "")}</td>
       <td>${escapeHtml(spot.band || "")}</td>
       <td><span class="mode-cell"><i data-lucide="${modeIcon(spot.mode)}"></i>${escapeHtml(spot.mode || "")}</span></td>
+      <td>${formatMiles(spot.distanceMiles)}</td>
       <td>${spot.snr === "" ? "" : `${escapeHtml(spot.snr)} dB`}</td>
       <td>${spot.speed === "" ? "" : `${escapeHtml(spot.speed)} WPM`}</td>
     </tr>
@@ -374,6 +386,11 @@ function renderRbnBeaconToggle(nodes) {
   beaconListToggle.setAttribute("aria-pressed", String(rbnBeaconsVisible));
   beaconListToggle.title = rbnBeaconsVisible ? "Hide RBN node markers" : "Show RBN node markers";
   beaconListToggleLabel.textContent = `Nodes${count ? ` ${count}` : ""}`;
+}
+
+function renderRbnPathToggle() {
+  rbnPathsToggle.setAttribute("aria-pressed", String(rbnPathsVisible));
+  rbnPathsToggle.title = rbnPathsVisible ? "Hide signal paths" : "Show signal paths";
 }
 
 function renderRbnMap(state) {
@@ -391,11 +408,12 @@ function renderRbnMap(state) {
     }).setView([25, 0], 2);
     setRbnFillZoom();
     rbnMap.on("resize", setRbnFillZoom);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
       bounds: worldBounds,
       maxZoom: 8,
       noWrap: true,
-      attribution: "&copy; OpenStreetMap contributors"
+      attribution: "&copy; OpenStreetMap contributors &copy; CARTO",
+      subdomains: "abcd"
     }).addTo(rbnMap);
     rbnMapLayers = L.layerGroup().addTo(rbnMap);
   }
@@ -414,21 +432,22 @@ function renderRbnMap(state) {
   }
 
   const paths = new Map();
-  state.spots.forEach((spot) => {
-    if (!hasCoordinates(spot)) return;
-    const origin = signalOrigin(spot, state);
-    if (!origin) return;
-    paths.set(`${origin.lat}|${origin.lon}|${spot.beacon}|${spot.band}`, { origin, spot });
-  });
+  if (rbnPathsVisible) {
+    state.spots.slice(0, RBN_PATH_LIMIT).forEach((spot) => {
+      if (!hasCoordinates(spot)) return;
+      const origin = signalOrigin(spot, state);
+      if (!origin) return;
+      paths.set(`${origin.lat}|${origin.lon}|${spot.beacon}|${spot.band}`, { origin, spot });
+    });
+  }
   paths.forEach(({ origin, spot }) => {
     const color = bandColor(spot.band);
     L.polyline(arcPoints(origin, spot), {
       color,
-      opacity: origin.estimated ? 0.42 : 0.68,
-      weight: 2,
-      dashArray: origin.estimated ? "6 7" : null
+      opacity: 0.68,
+      weight: 2
     })
-      .bindTooltip(`${spot.call} · ${spot.band || "Unknown band"} · ${spot.beacon}${origin.estimated ? " · origin estimated from home grid" : ""}`)
+      .bindTooltip([spot.call, spot.band || "Unknown band", spot.beacon, formatMiles(spot.distanceMiles)].filter(Boolean).join(" · "))
       .addTo(rbnMapLayers);
     bounds.push([origin.lat, origin.lon]);
     bounds.push([Number(spot.lat), Number(spot.lon)]);
@@ -454,6 +473,8 @@ function renderRbnMap(state) {
   rbnLegend.hidden = !activeBands.length;
   rbnMapEmpty.textContent = !nodes.length
     ? "Loading RBN node locations."
+    : !rbnPathsVisible && !hasVisibleNodes
+      ? "Signal paths are hidden."
     : !rbnBeaconsVisible
       ? "RBN node markers are hidden."
       : state.active
@@ -528,12 +549,16 @@ function formatShortDate(date) {
   return date.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 }
 
+function formatMiles(value) {
+  const miles = Number(value);
+  return Number.isFinite(miles) ? `${miles.toLocaleString()} mi` : "";
+}
+
 function signalOrigin(spot, state) {
   if (spot.call === state.stationCallsign && state.home) return state.home;
   if (Number.isFinite(Number(spot.originLat)) && Number.isFinite(Number(spot.originLon))) {
     return { lat: Number(spot.originLat), lon: Number(spot.originLon) };
   }
-  if (state.useHomeFallback && state.home) return { ...state.home, estimated: true };
   return null;
 }
 

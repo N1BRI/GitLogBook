@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>GitLogBook</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-    <link rel="stylesheet" href="/styles.css?v=10">
+    <link rel="stylesheet" href="/styles.css?v=12">
   </head>
   <body>
     <header class="topbar">
@@ -14,10 +14,6 @@
         <p>Local ADIF logger and static public log publisher</p>
       </div>
       <nav>
-        <button id="rbnToggle" type="button" class="icon-button rbn-toggle" aria-pressed="false" title="Connect to Reverse Beacon Network">
-          <i data-lucide="radio-tower"></i>
-          <span class="sr-only">Toggle Reverse Beacon Network</span>
-        </button>
         <a href="/site" target="_blank">Preview Site</a>
         <button id="exportButton" type="button">Export</button>
         <button id="publishButton" type="button">Publish</button>
@@ -226,6 +222,14 @@
               <i data-lucide="map-pin"></i>
               <span>Nodes</span>
             </button>
+            <button id="rbnPathsToggle" type="button" class="ghost icon-text-button" aria-pressed="true" title="Hide signal paths">
+              <i data-lucide="route"></i>
+              <span>Paths</span>
+            </button>
+            <a class="ghost icon-text-button rbn-donate-link" href="https://www.paypal.com/donate?hosted_button_id=FKD3Y53VRCTF4" target="_blank" rel="noopener noreferrer">
+              <i data-lucide="external-link"></i>
+              <span>Support RBN</span>
+            </a>
           </div>
         </div>
 
@@ -257,37 +261,41 @@
           </div>
         </div>
 
-        <div class="rbn-map-layout">
-          <div class="rbn-map-wrap">
-            <div id="rbnMap"></div>
-            <p id="rbnMapEmpty">Connect RBN to display beacon paths.</p>
-            <div id="rbnLegend" class="rbn-legend"></div>
+        <div class="rbn-live-grid">
+          <div class="rbn-map-layout">
+            <div class="rbn-map-wrap">
+              <div id="rbnMap"></div>
+              <p id="rbnMapEmpty">Connect RBN to display beacon paths.</p>
+              <div id="rbnLegend" class="rbn-legend"></div>
+            </div>
           </div>
-        </div>
-
-        <div class="rbn-table-head">
-          <div>
-            <h3>Spots</h3>
-            <p id="rbnSpotSummary">0 spots</p>
+          <div class="rbn-spots-panel">
+            <div class="rbn-table-head">
+              <div>
+                <h3>Spots</h3>
+                <p id="rbnSpotSummary">0 spots</p>
+              </div>
+              <span>Updates every 20 seconds</span>
+            </div>
+            <div class="table-wrap rbn-table-wrap">
+              <table class="rbn-table">
+                <thead>
+                  <tr>
+                    <th>Time</th>
+                    <th>Call</th>
+                    <th>Beacon</th>
+                    <th>Freq MHz</th>
+                    <th>Band</th>
+                    <th>Mode</th>
+                    <th>Miles</th>
+                    <th>SNR</th>
+                    <th>Speed</th>
+                  </tr>
+                </thead>
+                <tbody id="rbnRows"></tbody>
+              </table>
+            </div>
           </div>
-          <span>Updates every 20 seconds</span>
-        </div>
-        <div class="table-wrap rbn-table-wrap">
-          <table class="rbn-table">
-            <thead>
-              <tr>
-                <th>Time</th>
-                <th>Call</th>
-                <th>Beacon</th>
-                <th>Freq MHz</th>
-                <th>Band</th>
-                <th>Mode</th>
-                <th>SNR</th>
-                <th>Speed</th>
-              </tr>
-            </thead>
-            <tbody id="rbnRows"></tbody>
-          </table>
         </div>
       </section>
     </main>
@@ -309,6 +317,6 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-    <script src="/app.js?v=18"></script>
+    <script src="/app.js?v=28"></script>
   </body>
 </html>

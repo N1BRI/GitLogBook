@@ -1,7 +1,7 @@
 const assert = require("node:assert/strict");
 const { EventEmitter } = require("node:events");
 const test = require("node:test");
-const { RbnService, bandForFrequency, parseNodes, parseSpot } = require("../lib/rbn");
+const { RbnService, bandForFrequency, distanceMiles, parseNodes, parseSpot, prefixLocation } = require("../lib/rbn");
 
 test("parseSpot reads RBN CW and FT8 telnet rows", () => {
   const cw = parseSpot("DX de W3LPL-#:  14025.1  N1BRI         CW  18 dB  24 WPM  CQ      1530Z");
@@ -63,6 +63,38 @@ test("RbnService can expose node directory without live spots", async () => {
   assert.equal(snapshot.beacons.length, 0);
   assert.equal(snapshot.nodes.length, 1);
   assert.equal(snapshot.nodes[0].beacon, "W3LPL");
+});
+
+test("RbnService enriches CW origins through callsign lookup", async () => {
+  const service = new RbnService({
+    createConnection: fakeSocket,
+    fetchText: async () => `
+      <tr><td>W3LPL</td><td>20m</td><td>FM19LG</td><td>K</td><td>NA</td><td></td><td></td><td></td><td>online</td></tr>
+    `,
+    lookupCallsign: async (call) => ({ lat: 40.5, lon: -75.5, grid: "FN20", source: "test", confidence: "estimated", call })
+  });
+
+  await service.refreshNodes();
+  const spot = service.ingestLine("DX de W3LPL-#:  14025.1  K1ABC         CW  18 dB  24 WPM  CQ      1530Z");
+  await service.enrichSpotOrigin(spot);
+
+  assert.equal(spot.originGrid, "FN20");
+  assert.equal(spot.originLat, 40.5);
+  assert.equal(spot.originLon, -75.5);
+  assert.equal(spot.originSource, "test");
+  assert.equal(Number.isFinite(spot.distanceMiles), true);
+});
+
+test("prefixLocation provides approximate fallback locations", () => {
+  const japan = prefixLocation("JA1ABC");
+  assert.equal(japan.source, "prefix:Japan");
+  assert.equal(japan.confidence, "approximate");
+  assert.equal(Number.isFinite(japan.lat), true);
+});
+
+test("distanceMiles calculates approximate path distance", () => {
+  const miles = distanceMiles({ lat: 40.7128, lon: -74.006 }, { lat: 34.0522, lon: -118.2437 });
+  assert.equal(Math.round(miles), 2446);
 });
 
 test("RbnService defaults to station filter and retains watched-call session history", async () => {
