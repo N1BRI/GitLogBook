@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>YOURCALL Logbook</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-    <link rel="stylesheet" href="./styles.css?v=9">
+    <link rel="stylesheet" href="./styles.css?v=10">
   </head>
   <body>
     <header class="masthead">
@@ -30,6 +30,7 @@
         </div>
         <select id="bandFilter" aria-label="Band filter"><option value="">All bands</option></select>
         <select id="modeFilter" aria-label="Mode filter"><option value="">All modes</option></select>
+        <button id="clearFilters" type="button">Clear</button>
       </section>
 
       <section class="overview">
@@ -50,8 +51,7 @@
         <div class="map-section">
           <div id="map"></div>
           <div id="mapFallback">Map tiles are unavailable, but the log data is loaded.</div>
-          <div class="map-legend">
-            <span><i class="dot contact"></i>Contacts</span>
+          <div id="mapLegend" class="map-legend">
             <span><i class="dot home"></i>Home</span>
           </div>
         </div>
@@ -98,8 +98,15 @@
 
       <section class="log">
         <div class="log-head">
-          <h2>Contacts</h2>
-          <p id="resultCount">0 shown</p>
+          <div>
+            <h2>Contacts</h2>
+            <p id="resultCount">0 shown</p>
+          </div>
+          <div id="logPager" class="log-pager" hidden>
+            <button id="prevPage" type="button" aria-label="Previous page">Prev</button>
+            <span id="pageStatus">Page 1 of 1</span>
+            <button id="nextPage" type="button" aria-label="Next page">Next</button>
+          </div>
         </div>
         <div class="table-wrap">
           <table>
@@ -109,8 +116,11 @@
                 <th>Time</th>
                 <th>Call</th>
                 <th>Band</th>
+                <th>Freq</th>
                 <th>Mode</th>
+                <th>RST</th>
                 <th>Grid</th>
+                <th>Location</th>
               </tr>
             </thead>
             <tbody id="rows"></tbody>
@@ -120,6 +130,6 @@
     </main>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="./site.js?v=9"></script>
+    <script src="./site.js?v=10"></script>
   </body>
 </html>

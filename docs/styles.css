@@ -19,6 +19,10 @@
   box-sizing: border-box;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 body {
   margin: 0;
   background:
@@ -99,7 +103,7 @@ h1 {
 
 .filters {
   display: grid;
-  grid-template-columns: minmax(280px, 1fr) minmax(250px, 330px) minmax(120px, 170px) minmax(120px, 170px);
+  grid-template-columns: minmax(280px, 1fr) minmax(250px, 330px) minmax(120px, 170px) minmax(120px, 170px) auto;
   gap: 10px;
   padding: 12px;
   background: var(--panel);
@@ -115,7 +119,8 @@ h1 {
 }
 
 input,
-select {
+select,
+button {
   width: 100%;
   min-height: 42px;
   border: 1px solid var(--line-strong);
@@ -128,9 +133,26 @@ select {
 }
 
 input:focus,
-select:focus {
+select:focus,
+button:focus {
   border-color: var(--accent);
   outline: 3px solid rgba(15, 118, 110, 0.16);
+}
+
+button {
+  background: var(--navy);
+  color: white;
+  cursor: pointer;
+  font-weight: 850;
+}
+
+button:hover {
+  background: var(--accent);
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .overview {
@@ -264,7 +286,7 @@ select:focus {
   top: 12px;
   z-index: 500;
   display: flex;
-  gap: 10px;
+  gap: 7px 10px;
   flex-wrap: wrap;
   max-width: calc(100% - 24px);
   padding: 9px 10px;
@@ -275,6 +297,11 @@ select:focus {
   color: #3c4858;
   font-size: 12px;
   font-weight: 800;
+}
+
+.map-legend span {
+  display: inline-flex;
+  align-items: center;
 }
 
 .dot {
@@ -507,6 +534,7 @@ h2 {
 }
 
 .log-head {
+  gap: 12px;
   padding: 15px 16px;
   border-bottom: 1px solid var(--line);
 }
@@ -517,8 +545,28 @@ h2 {
   font-weight: 700;
 }
 
+.log-pager {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.log-pager button {
+  width: auto;
+  min-height: 34px;
+  padding: 7px 10px;
+  font-size: 12px;
+}
+
+.log-pager span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
 .table-wrap {
-  max-height: 540px;
+  max-height: 620px;
   overflow: auto;
 }
 
@@ -530,7 +578,7 @@ table {
 
 th,
 td {
-  padding: 11px 13px;
+  padding: 11px 12px;
   border-bottom: 1px solid var(--line);
   text-align: left;
   white-space: nowrap;
@@ -552,6 +600,10 @@ tbody tr:nth-child(even) {
 
 tbody tr:hover {
   background: #eef8f6;
+}
+
+td:nth-child(3) strong {
+  letter-spacing: 0.01em;
 }
 
 td strong {
@@ -710,6 +762,10 @@ td strong {
 
   .filters {
     grid-template-columns: 1fr;
+  }
+
+  .log-head {
+    align-items: start;
   }
 
   .map-section {

@@ -2,9 +2,27 @@ const state = {
   config: {},
   records: [],
   filtered: [],
+  page: 1,
   map: null,
   markers: null,
   homeMarker: null
+};
+
+const PAGE_SIZE = 50;
+
+const BAND_COLORS = {
+  "160m": "#4f46e5",
+  "80m": "#2563eb",
+  "60m": "#0891b2",
+  "40m": "#0f766e",
+  "30m": "#65a30d",
+  "20m": "#ca8a04",
+  "17m": "#ea580c",
+  "15m": "#dc2626",
+  "12m": "#db2777",
+  "10m": "#be123c",
+  "6m": "#475569",
+  "2m": "#111827"
 };
 
 const controls = {
@@ -13,8 +31,13 @@ const controls = {
   dateTo: document.querySelector("#dateTo"),
   band: document.querySelector("#bandFilter"),
   mode: document.querySelector("#modeFilter"),
+  clearFilters: document.querySelector("#clearFilters"),
   rows: document.querySelector("#rows"),
   resultCount: document.querySelector("#resultCount"),
+  logPager: document.querySelector("#logPager"),
+  prevPage: document.querySelector("#prevPage"),
+  nextPage: document.querySelector("#nextPage"),
+  pageStatus: document.querySelector("#pageStatus"),
   viewStat: document.querySelector("#viewStat"),
   topBandStat: document.querySelector("#topBandStat"),
   topBandCount: document.querySelector("#topBandCount"),
@@ -24,6 +47,7 @@ const controls = {
   aboutTitle: document.querySelector("#aboutTitle"),
   aboutBody: document.querySelector("#aboutBody"),
   recentPosts: document.querySelector("#recentPosts"),
+  mapLegend: document.querySelector("#mapLegend"),
   bandHourHeatmap: document.querySelector("#bandHourHeatmap")
 };
 
@@ -93,8 +117,20 @@ function setupFilters() {
   fillSelect(controls.mode, unique("mode"));
   Object.values(controls).forEach((control) => {
     if (control instanceof HTMLInputElement || control instanceof HTMLSelectElement) {
-      control.addEventListener("input", applyFilters);
+      control.addEventListener("input", () => {
+        state.page = 1;
+        applyFilters();
+      });
     }
+  });
+  controls.clearFilters.addEventListener("click", clearFilters);
+  controls.prevPage.addEventListener("click", () => {
+    state.page = Math.max(1, state.page - 1);
+    renderTable();
+  });
+  controls.nextPage.addEventListener("click", () => {
+    state.page += 1;
+    renderTable();
   });
 }
 
@@ -106,19 +142,30 @@ function setupMap() {
   }
   const worldBounds = L.latLngBounds([[-85, -180], [85, 180]]);
   state.map = L.map("map", {
-    scrollWheelZoom: false,
+    scrollWheelZoom: true,
     worldCopyJump: false,
     maxBounds: worldBounds,
     maxBoundsViscosity: 1,
     minZoom: 2
   }).setView([25, 0], 2);
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
     bounds: worldBounds,
     maxZoom: 12,
     noWrap: true,
-    attribution: "&copy; OpenStreetMap contributors"
+    attribution: "&copy; OpenStreetMap contributors &copy; CARTO",
+    subdomains: "abcd"
   }).addTo(state.map);
   state.markers = L.layerGroup().addTo(state.map);
+}
+
+function clearFilters() {
+  controls.search.value = "";
+  controls.dateFrom.value = "";
+  controls.dateTo.value = "";
+  controls.band.value = "";
+  controls.mode.value = "";
+  state.page = 1;
+  applyFilters();
 }
 
 function applyFilters() {
@@ -144,27 +191,46 @@ function applyFilters() {
 }
 
 function renderTable() {
-  controls.resultCount.textContent = `${state.filtered.length} shown`;
+  const totalPages = Math.max(1, Math.ceil(state.filtered.length / PAGE_SIZE));
+  state.page = Math.min(state.page, totalPages);
+  const pageStart = (state.page - 1) * PAGE_SIZE;
+  const pageRows = state.filtered.slice(pageStart, pageStart + PAGE_SIZE);
+  const first = state.filtered.length ? pageStart + 1 : 0;
+  const last = Math.min(state.filtered.length, pageStart + PAGE_SIZE);
+  controls.resultCount.textContent = state.filtered.length
+    ? `${first}-${last} of ${state.filtered.length} shown`
+    : "0 shown";
+  renderLogPager(totalPages);
   controls.rows.innerHTML = "";
   if (!state.filtered.length) {
-    controls.rows.innerHTML = `<tr><td colspan="6" class="empty">No contacts match these filters.</td></tr>`;
+    controls.rows.innerHTML = `<tr><td colspan="9" class="empty">No contacts match these filters.</td></tr>`;
     return;
   }
 
   const fragment = document.createDocumentFragment();
-  state.filtered.slice(0, 500).forEach((qso) => {
+  pageRows.forEach((qso) => {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${escapeHtml(qso.date)}</td>
       <td>${escapeHtml(qso.time)}</td>
       <td><strong>${escapeHtml(qso.call)}</strong></td>
       <td>${escapeHtml(qso.band)}</td>
+      <td>${escapeHtml(qso.freq)}</td>
       <td>${escapeHtml(qso.mode)}</td>
+      <td>${escapeHtml(formatRst(qso))}</td>
       <td>${escapeHtml(qso.grid)}</td>
+      <td>${escapeHtml(formatLocation(qso))}</td>
     `;
     fragment.appendChild(tr);
   });
   controls.rows.appendChild(fragment);
+}
+
+function renderLogPager(totalPages) {
+  controls.logPager.hidden = state.filtered.length <= PAGE_SIZE;
+  controls.prevPage.disabled = state.page <= 1;
+  controls.nextPage.disabled = state.page >= totalPages;
+  controls.pageStatus.textContent = `Page ${state.page} of ${totalPages}`;
 }
 
 function renderCharts() {
@@ -190,28 +256,60 @@ function renderMap() {
   state.filtered.forEach((qso) => {
     if (!qso.mapped) return;
     const key = qso.grid || `${Number(qso.lat).toFixed(1)},${Number(qso.lon).toFixed(1)}`;
-    const bucket = grouped.get(key) || { ...qso, count: 0, calls: new Set() };
+    const bucket = grouped.get(key) || { ...qso, count: 0, calls: new Set(), bands: new Map() };
     bucket.count += 1;
     bucket.calls.add(qso.call);
+    bucket.bands.set(qso.band || "Unknown", (bucket.bands.get(qso.band || "Unknown") || 0) + 1);
     grouped.set(key, bucket);
   });
 
   const bounds = [];
   grouped.forEach((point) => {
+    const dominantBand = dominantMapBand(point.bands);
+    const color = bandColor(dominantBand);
     const marker = L.circleMarker([point.lat, point.lon], {
       radius: Math.min(22, 6 + Math.sqrt(point.count) * 2),
-      color: "#0f766e",
-      fillColor: "#14b8a6",
-      fillOpacity: 0.72,
+      color,
+      fillColor: color,
+      fillOpacity: 0.78,
       weight: 2
     });
-    marker.bindPopup(`<strong>${escapeHtml(point.grid || point.call)}</strong><br>${point.count} QSOs<br>${[...point.calls].slice(0, 8).join(", ")}`);
+    marker.bindPopup(`
+      <strong>${escapeHtml(point.grid || point.call)}</strong><br>
+      ${point.count} QSOs<br>
+      ${escapeHtml(formatBandCounts(point.bands))}<br>
+      ${escapeHtml([...point.calls].slice(0, 8).join(", "))}
+    `);
     marker.addTo(state.markers);
     bounds.push([point.lat, point.lon]);
   });
 
+  renderMapLegend();
   if (state.homeMarker) bounds.push(state.homeMarker.getLatLng());
   if (bounds.length) state.map.fitBounds(bounds, { padding: [30, 30], maxZoom: 5 });
+}
+
+function renderMapLegend() {
+  const bands = uniqueFromFiltered("band").sort(compareBands);
+  controls.mapLegend.innerHTML = [
+    `<span><i class="dot home"></i>Home</span>`,
+    ...bands.map((band) => `<span><i class="dot" style="background:${bandColor(band)}"></i>${escapeHtml(band)}</span>`)
+  ].join("");
+}
+
+function dominantMapBand(bands) {
+  return [...bands.entries()].sort((a, b) => b[1] - a[1] || compareBands(a[0], b[0]))[0]?.[0] || "";
+}
+
+function formatBandCounts(bands) {
+  return [...bands.entries()]
+    .sort((a, b) => compareBands(a[0], b[0]))
+    .map(([band, count]) => `${band}: ${count}`)
+    .join(" · ");
+}
+
+function bandColor(band) {
+  return BAND_COLORS[band] || "#64748b";
 }
 
 function renderHomeMarker() {
@@ -347,6 +445,14 @@ function formatDate(value) {
   if (!value) return "";
   const [year, month, day] = value.split("-");
   return `${month}/${day}/${year}`;
+}
+
+function formatRst(qso) {
+  return [qso.rstSent, qso.rstRcvd].filter(Boolean).join(" / ");
+}
+
+function formatLocation(qso) {
+  return [qso.state, qso.country].filter(Boolean).join(", ");
 }
 
 function escapeHtml(value) {
