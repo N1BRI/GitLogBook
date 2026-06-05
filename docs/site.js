@@ -146,7 +146,8 @@ function setupMap() {
     worldCopyJump: false,
     maxBounds: worldBounds,
     maxBoundsViscosity: 1,
-    minZoom: 2
+    minZoom: 2,
+    zoomControl: false
   }).setView([25, 0], 2);
   L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
     bounds: worldBounds,
